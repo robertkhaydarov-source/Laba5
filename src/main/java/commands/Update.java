@@ -1,0 +1,59 @@
+package commands;
+
+import manager.CollectionManager;
+import manager.InputManager;
+import manager.StudyGroupFactory;
+import model.*;
+
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class Update implements Comand{
+    private final InputManager inputManager;
+    private final StudyGroupFactory studyGroupFactory;
+    @Override
+    public void execute(String... args) {
+        try {
+            if (args.length == 13){
+                long id_update=Long.parseLong(args[0]);
+                collectionManager.remove_by_id(id_update);
+                List<String> list = new ArrayList<>(Arrays.asList(args));
+                list.remove(0);
+                String[] newArgs = list.toArray(new String[0]);
+                StudyGroup studyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), newArgs);
+                if(studyGroup!=null) collectionManager.add(studyGroup);
+
+            }
+            else if(args.length == 1){
+                StudyGroup addstudyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), inputManager.consoleArgs());
+                if(addstudyGroup!=null)collectionManager.add(addstudyGroup);
+            }
+            else System.out.println("не введен id");
+        } catch (NumberFormatException e) {
+            System.err.println("Ошибка при вводе id: " + e.getMessage());;
+        }
+
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String getInfo() {
+        return "обновить значение элемента коллекции, id которого равен заданному";
+    }
+
+    private final CollectionManager collectionManager;
+    private final String name = "update";
+    public Update(InputManager inputManager, StudyGroupFactory studyGroupFactory, CollectionManager collectionManager) {
+        this.inputManager = inputManager;
+        this.studyGroupFactory = studyGroupFactory;
+        this.collectionManager = collectionManager;
+
+
+    }
+}

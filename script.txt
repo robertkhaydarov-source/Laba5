@@ -1,0 +1,15 @@
+add
+GroupA
+10
+20
+5
+2
+FULL_TIME_EDUCATION
+FOURTH
+Ivan
+AA123
+GREEN
+BLACK
+RUSSIA
+save
+info
