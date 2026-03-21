@@ -58,13 +58,13 @@ public class Main {
             }
             collectionManager.updateCurrentId();
         } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
+            System.err.println("файла не существует " + e.getMessage());
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.err.println("Ошибка ввода-вывода " + e.getMessage());
         } catch (CsvException e) {
-            throw new RuntimeException(e);
+            System.err.println("ошибка парсинга " + e.getMessage());
         }
-        while (true) {
+        while (scanner.hasNextLine()) {
             String commandWithArgs = scanner.nextLine();
             invoker.execute(commandWithArgs);
 

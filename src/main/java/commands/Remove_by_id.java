@@ -30,7 +30,7 @@ public class Remove_by_id implements Comand {
             long id = Long.parseLong(args[0]);
             collectionManager.remove_by_id(id);
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-            System.err.println("введен не корректный id");
+            System.err.println("введен не корректный id" + e.getMessage());
         }
     }
         @Override

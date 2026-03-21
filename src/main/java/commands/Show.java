@@ -30,7 +30,7 @@ public class Show implements Comand {
      */
     public void execute(String... args) {
         List<StudyGroup> studyGroups = collectionManager.showCollection();
-        if (studyGroups!=null){
+        if (!studyGroups.isEmpty()){
             for (StudyGroup st: studyGroups){
                 System.out.println(st);
             }

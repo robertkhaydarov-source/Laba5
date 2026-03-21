@@ -49,8 +49,11 @@ public class StudyGroupFactory {
      * @return создает StudyGroup из консоли.
      */
     public StudyGroup createFromConsole(ZonedDateTime dateTime, String[] args){
-        long id =collectionManager.getCurrentId();
-        return createStudyGroup(dateTime, id, args);
+        if (args!=null){
+            long id =collectionManager.getCurrentId();
+            return createStudyGroup(dateTime, id, args);
+        }
+        return null;
     }
 
     /**
@@ -60,9 +63,12 @@ public class StudyGroupFactory {
      * @return создает StudyGroup из файла.
      */
     public StudyGroup createFromFile(ZonedDateTime dateTime, String[] args){
-        long id = Long.parseLong(args[0]);
-        String[] withoutId = Arrays.copyOfRange(args, 1, args.length);
-        return createStudyGroup(dateTime, id, withoutId);
+        if(args!=null){
+            long id = Long.parseLong(args[0]);
+            String[] withoutId = Arrays.copyOfRange(args, 1, args.length);
+            return createStudyGroup(dateTime, id, withoutId);
+        }
+        return null;
     }
 }
 

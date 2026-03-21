@@ -39,7 +39,6 @@ public class Remove_lower implements Comand{
             StudyGroup studyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), args);
             if(studyGroup!=null){
                 collectionManager.remove_lower(studyGroup);
-                System.out.println("Элементы удалены");
             }
         }
 
@@ -47,7 +46,6 @@ public class Remove_lower implements Comand{
             StudyGroup consoleStudyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), inputManager.consoleArgs());
             if(consoleStudyGroup!=null){
                 collectionManager.remove_lower(consoleStudyGroup);
-                System.out.println("Элементы удалены");
             }
         }
     }

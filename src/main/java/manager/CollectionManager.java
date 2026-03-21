@@ -102,7 +102,7 @@ public class CollectionManager {
      * Если коллекция пустая, операция не выполняется.
      */
     public void remove_last(){
-        if(collection!=null){
+        if(!collection.isEmpty()){
             collection.sort(null);
             collection.remove(collection.size()-1);
         }
@@ -115,7 +115,12 @@ public class CollectionManager {
      * @param studyGroup элемент
      */
     public void remove_lower(StudyGroup studyGroup){
+        if (!collection.isEmpty()){
             collection.removeIf(el ->el.compareTo(studyGroup)<0);
+            System.out.println("элементы удалены");
+        }
+        else System.out.println("коллекция пуста");
+
     }
     /**
      * Добавляет элемент в коллекцию,
@@ -125,7 +130,7 @@ public class CollectionManager {
      * @param studyGroup элемент для добавления
      */
     public void add_if_max(StudyGroup studyGroup){
-        if (collection!=null){
+        if (!collection.isEmpty()){
             StudyGroup max=Collections.max(collection);
             if (studyGroup.compareTo(max)>0){
                 collection.add(studyGroup);

@@ -25,7 +25,8 @@ public class InputManager {
     public String[] consoleArgs(){
         ArrayList<String> arg = new ArrayList<>();
         if (r) {System.out.println("Введите name:");}
-        while (true){
+        if (!scanner.hasNextLine()) return null;
+        while (scanner.hasNextLine()){
             String name=scanner.nextLine();
             if(name.isBlank()){
                 if(r)System.out.println("имя не может быть пустым");
@@ -35,7 +36,8 @@ public class InputManager {
             break;
         }
         if (r) {System.out.println("Введите координату x:");}
-        while (true){
+        if (!scanner.hasNextLine()) return null;
+        while (scanner.hasNextLine()){
             String input = scanner.nextLine();
             try {
                 Long.parseLong(input);
@@ -46,7 +48,8 @@ public class InputManager {
             }
         }
         if (r) {System.out.println("Введите координату y:");}
-        while (true){
+        if (!scanner.hasNextLine()) return null;
+        while (scanner.hasNextLine()){
             String input = scanner.nextLine();
             try {
                 long y=Long.parseLong(input);
@@ -80,7 +83,8 @@ public class InputManager {
         }
         readEnum(Semester.class, arg);
         if (r) {System.out.println("Введите имя админа: ");}
-        while (true){
+        if (!scanner.hasNextLine()) return null;
+        while (scanner.hasNextLine()){
             String name=scanner.nextLine();
             if(name.isBlank()){
                 if(r)System.out.println("имя не может быть пустым");
@@ -90,7 +94,8 @@ public class InputManager {
             break;
         }
         if (r) {System.out.println("Введите паспортные данные админа группы: ");}
-        while (true){
+        if (!scanner.hasNextLine()) return null;
+        while (scanner.hasNextLine()){
             String pasportId=scanner.nextLine();
             if(pasportId.length()>48 ){
                 if(r)System.out.println("не валидное значение");
@@ -137,7 +142,7 @@ public class InputManager {
      * @param arg список аргументов
      */
     public void readInt(ArrayList<String> arg){
-       while (true){
+       while (scanner.hasNextLine()){
            String string=scanner.nextLine();
            try {
                int value=Integer.parseInt(string);
@@ -160,7 +165,7 @@ public class InputManager {
      * @param arg аргументы
      */
     public void readEnum(Class<? extends Enum> enumclass, ArrayList<String> arg) {
-        while (true) {
+        while (scanner.hasNextLine()) {
             String string = scanner.nextLine();
             try {
                 int value = Integer.parseInt(string);
@@ -177,7 +182,7 @@ public class InputManager {
                     arg.add(String.valueOf(constant));
                     break;
                 } catch (IllegalArgumentException r) {
-                    System.out.println("неверный формат");
+                    System.err.println("неверный формат" + r.getMessage());
                 }
             }
         }

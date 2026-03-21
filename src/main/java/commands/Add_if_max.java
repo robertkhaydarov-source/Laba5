@@ -39,12 +39,12 @@ public class Add_if_max implements Comand{
     public void execute(String... args) {
         if (args.length == 12) {
             StudyGroup studyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), args);
-            if(studyGroup!=null && (collectionManager.showCollection()!=null)) collectionManager.add_if_max(studyGroup);
+            if(studyGroup!=null && (!collectionManager.showCollection().isEmpty())) collectionManager.add_if_max(studyGroup);
         }
 
         else {
             StudyGroup consoleStudyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), inputManager.consoleArgs());
-            if(consoleStudyGroup!=null && (collectionManager.showCollection()!=null))collectionManager.add_if_max(consoleStudyGroup);
+            if(consoleStudyGroup!=null && (!collectionManager.showCollection().isEmpty()))collectionManager.add_if_max(consoleStudyGroup);
         }
     }
 

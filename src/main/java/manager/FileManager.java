@@ -36,7 +36,8 @@ public class FileManager {
             }
             return fileArgs;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            System.out.println("Ошибка ввода-вывода " + e.getMessage());
         }
+        return List.of();
     }
 }
