@@ -7,16 +7,33 @@ import model.StudyGroup;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
-
+/**
+ * Класс Save сохранить коллекцию в файл.
+ *
+ * @author Khaydarov Robert P3118
+ * @version 1.0
+ */
 public class Save implements Comand{
+
     private final String name="save";
     private final CollectionManager collectionManager;
     private final String filename;
-
+    /**
+     * Конструктор команды Save.
+     *
+     * @param collectionManager менеджер коллекции
+     * @param filename имя файла
+     */
     public Save(CollectionManager collectionManager, String filename) {
         this.collectionManager = collectionManager;
         this.filename = filename;
     }
+
+    /**
+     * С помощью библиотеки собирает значения и парсит
+     * после этого записывает в файл
+     * @param args
+     */
     public void execute(String... args) {
         List<StudyGroup> show = collectionManager.show();
         try(CSVWriter csvWriter = new CSVWriter(new FileWriter(filename))){

@@ -6,20 +6,36 @@ import manager.StudyGroupFactory;
 import model.StudyGroup;
 
 import java.time.ZonedDateTime;
-
+/**
+ * Класс Add_if_max добавить новый элемент в коллекцию, если его значение превышает значение наибольшего элемента этой коллекции.
+ *
+ * @author Khaydarov Robert P3118
+ * @version 1.0
+ */
 public class Add_if_max implements Comand{
+
     private final String name="add_if_max";
     private final CollectionManager collectionManager;
     private final StudyGroupFactory studyGroupFactory;
     private final InputManager inputManager;
-
+    /**
+     * Конструктор команды Add_if_max.
+     *
+     * @param collectionManager менеджер коллекции
+     * @param inputManager менеджер ввода
+     * @param studyGroupFactory фабрика объектов StudyGroup
+     */
     public Add_if_max(CollectionManager collectionManager, StudyGroupFactory studyGroupFactory, InputManager inputManager) {
         this.collectionManager = collectionManager;
         this.studyGroupFactory = studyGroupFactory;
         this.inputManager = inputManager;
     }
 
-    @Override
+    /**
+     * Выполняет команду.
+     *
+     * @param args аргументы команды
+     */
     public void execute(String... args) {
         if (args.length == 12) {
             StudyGroup studyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), args);

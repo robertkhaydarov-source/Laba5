@@ -1,7 +1,12 @@
 package model;
 
 import java.time.ZonedDateTime;
-
+/**
+ * Класс представляет учебную группу.
+ * Содержит информацию о названии группы,
+ * координатах, количестве студентов и администраторе.
+ * Реализует интерфейс Comparable для сортировки объектов.
+ */
 public class StudyGroup implements Comparable<StudyGroup> {
     private long id; //Значение поля должно быть больше 0, Значение этого поля должно 0быть уникальным, Значение этого поля должно генерироваться автоматически
     private String name; //Поле не может быть null, Строка не может быть пустой
@@ -89,9 +94,22 @@ public class StudyGroup implements Comparable<StudyGroup> {
     public ZonedDateTime getCreationDate() {
         return creationDate;
     }
+    /**
+     * Возвращает строковое представление объекта StudyGroup.
+     *
+     * @return строка с информацией о группе
+     */
     public String toString(){
         return id + ",  " + name + ",  " + coordinates+ ",  " + creationDate + ",  " + studentsCount+ ",  " +shouldBeExpelled+ ",  " +formOfEducation + ",  " + semesterEnum + ",  " + groupAdmin;
     }
+    /**
+     * Сравнивает текущий объект StudyGroup с другим.
+     *
+     * @param other другой объект StudyGroup
+     * @return отрицательное число, если текущий объект меньше,
+     *         ноль если равны,
+     *         положительное число если больше
+     */
     @Override
     public int compareTo(StudyGroup other) {
         return Long.compare(this.studentsCount, other.studentsCount);

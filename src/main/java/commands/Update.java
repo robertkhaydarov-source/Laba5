@@ -9,11 +9,21 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
+/**
+ * Класс Update обновить значение элемента коллекции, id которого равен заданному.
+ *
+ * @author Khaydarov Robert P3118
+ * @version 1.0
+ */
 public class Update implements Comand{
+
     private final InputManager inputManager;
     private final StudyGroupFactory studyGroupFactory;
-    @Override
+
+    /**
+     * Ищет элемент по id удаляет его и создает новый
+     * @param args аргументы введенные после имени команды
+     */
     public void execute(String... args) {
         try {
             if (args.length == 13){
@@ -49,6 +59,13 @@ public class Update implements Comand{
 
     private final CollectionManager collectionManager;
     private final String name = "update";
+    /**
+     * Конструктор команды Update.
+     *
+     * @param collectionManager менеджер коллекции
+     * @param inputManager менеджер ввода
+     * @param studyGroupFactory фабрика объектов StudyGroup
+     */
     public Update(InputManager inputManager, StudyGroupFactory studyGroupFactory, CollectionManager collectionManager) {
         this.inputManager = inputManager;
         this.studyGroupFactory = studyGroupFactory;

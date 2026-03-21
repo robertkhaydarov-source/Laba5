@@ -1,5 +1,7 @@
 package model;
-
+/**
+ * Класс Person содержит описывающую информацию об админе группы.
+ */
 
 public class Person {
     private String name; //Поле не может быть null, Строка не может быть пустой

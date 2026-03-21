@@ -10,7 +10,16 @@ import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Scanner;
-
+/**
+ * Класс Main является точкой входа в приложение.
+ * Инициализирует основные менеджеры программы,
+ * регистрирует команды и запускает цикл обработки пользовательского ввода.
+ *
+ * Программа управляет коллекцией объектов StudyGroup.
+ *
+ * @author Robert
+ * @version 1.0
+ */
 public class Main {
 
     public static void main(String[] args) {
@@ -37,8 +46,8 @@ public class Main {
         invoker.register(new Remove_last(collectionManager));
         invoker.register(new Add_if_max(collectionManager, studyGroupFactory, inputManager));
         invoker.register(new Remove_lower(collectionManager, inputManager, studyGroupFactory));
-        invoker.register(new Count_by_form_of_education(collectionManager, studyGroupFactory, inputManager));
-        invoker.register(new Filter_contains_name());
+        invoker.register(new Count_by_form_of_education(collectionManager));
+        invoker.register(new Filter_contains_name(collectionManager));
         invoker.register(new Print_field_ascending_should_be_expelled(collectionManager));
         invoker.register(new Execute_script(invoker, inputManager));
         try {
