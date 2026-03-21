@@ -99,8 +99,22 @@ public class StudyGroup implements Comparable<StudyGroup> {
      *
      * @return строка с информацией о группе
      */
-    public String toString(){
-        return id + ",  " + name + ",  " + coordinates+ ",  " + creationDate + ",  " + studentsCount+ ",  " +shouldBeExpelled+ ",  " +formOfEducation + ",  " + semesterEnum + ",  " + groupAdmin;
+    @Override
+    public String toString() {
+        return " id = " + id + "\n" +
+                " name = " + name + "\n" +
+                " coordinates = (" + coordinates.getX() + ", " + coordinates.getY() + ")\n" +
+                " creationDate = " + creationDate + "\n" +
+                " studentsCount = " + studentsCount + "\n" +
+                " shouldBeExpelled = " + shouldBeExpelled + "\n" +
+                " formOfEducation = " + formOfEducation + "\n" +
+                " semester = " + semesterEnum + "\n" +
+                " groupAdmin:\n" +
+                "   name = " + groupAdmin.getName() + "\n" +
+                "   passportID = " + groupAdmin.getPassportID() + "\n" +
+                "   eyeColor = " + groupAdmin.getEyeColor() + "\n" +
+                "   hairColor = " + groupAdmin.getHairColor() + "\n" +
+                "   nationality = " + groupAdmin.getNationality() + "\n";
     }
     /**
      * Сравнивает текущий объект StudyGroup с другим.

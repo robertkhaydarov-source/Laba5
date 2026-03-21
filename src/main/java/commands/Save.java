@@ -35,7 +35,7 @@ public class Save implements Comand{
      * @param args
      */
     public void execute(String... args) {
-        List<StudyGroup> show = collectionManager.show();
+        List<StudyGroup> show = collectionManager.showCollection();
         try(CSVWriter csvWriter = new CSVWriter(new FileWriter(filename))){
             for(StudyGroup s:show) {
                 String[] data = {

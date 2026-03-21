@@ -26,7 +26,8 @@ public class Filter_contains_name implements Comand{
      * @param args аргументы команды
      */
     public void execute(String... args) {
-        collectionManager.filter_contains_name(args[0]);
+        if (args.length==1)collectionManager.filter_contains_name(args[0]);
+        else System.out.println("Введите имя без пробелов");
     }
 
     @Override

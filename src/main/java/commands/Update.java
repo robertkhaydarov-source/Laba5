@@ -28,7 +28,16 @@ public class Update implements Comand{
         try {
             if (args.length == 13){
                 long id_update=Long.parseLong(args[0]);
-                collectionManager.remove_by_id(id_update);
+                if(!collectionManager.showCollection().isEmpty()){
+                    collectionManager.remove_by_id(id_update);
+                }
+                else {
+                    System.out.println("коллекция пуста");
+                    return;
+                }
+                if(!collectionManager.remove_by_id(id_update)){
+                    return;
+                }
                 List<String> list = new ArrayList<>(Arrays.asList(args));
                 list.remove(0);
                 String[] newArgs = list.toArray(new String[0]);
@@ -37,6 +46,10 @@ public class Update implements Comand{
 
             }
             else if(args.length == 1){
+                long id_update=Long.parseLong(args[0]);
+                if(!collectionManager.remove_by_id(id_update)){
+                    return;
+                }
                 StudyGroup addstudyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), inputManager.consoleArgs());
                 if(addstudyGroup!=null)collectionManager.add(addstudyGroup);
             }

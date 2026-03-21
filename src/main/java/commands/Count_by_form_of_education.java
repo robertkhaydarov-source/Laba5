@@ -31,9 +31,8 @@ public class Count_by_form_of_education implements Comand{
         if (args.length == 1) {
             collectionManager.count_by_form_of_education(args[0]);
         }
-
         else {
-            System.out.println(",e,ee,");
+            System.out.println("введите значение формы обучения");
         }
     }
 

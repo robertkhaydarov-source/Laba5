@@ -22,7 +22,8 @@ public class Print_field_ascending_should_be_expelled implements Comand {
 
     @Override
     public void execute(String... args) {
-        collectionManager.print_field_ascending_should_be_expelled();
+        if(collectionManager.showCollection()!=null)collectionManager.print_field_ascending_should_be_expelled();
+        else System.out.println("коллекция пуста");
     }
 
     @Override

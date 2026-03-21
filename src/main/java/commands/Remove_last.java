@@ -26,7 +26,10 @@ public class Remove_last implements Comand{
      * @param args аргументы команды
      */
     public void execute(String... args) {
-        if(collectionManager.show()!=null) collectionManager.remove_last();
+        if(collectionManager.showCollection()!=null) {
+            collectionManager.remove_last();
+            System.out.println("последний элемент удален");
+        }
         else System.out.println("коллекция пуста");
     }
 

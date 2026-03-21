@@ -24,10 +24,9 @@ public class CollectionManager {
      *
      * @return список объектов StudyGroup
      */
-    public List<StudyGroup> show() {
-        return  Collections.unmodifiableList(collection);
+    public List<StudyGroup> showCollection(){
+        return Collections.unmodifiableList(collection);
     }
-
     /**
      * @return размер коллекции
      */
@@ -62,9 +61,9 @@ public class CollectionManager {
      *
      * @param id идентификатор элемента
      */
-    public void remove_by_id(long id){
+    public boolean remove_by_id(long id){
         boolean f=false;
-        for(int i=0; i<collection.size();i++){
+        for(int i = 0; i<collection.size();i++){
             if(id == collection.get(i).getId()){
                 collection.remove(i);
                 System.out.println("элемент с введенным id удален");
@@ -72,7 +71,11 @@ public class CollectionManager {
                 break;
             }
         }
-        if (!f)System.out.println("элемента с введенным id нет");
+        if (!f){
+            System.out.println("элемента с введенным id нет");
+
+        }
+        return f;
     }
 
     /**
@@ -129,7 +132,7 @@ public class CollectionManager {
             }
             else {
                 currentId-=1;
-                System.out.println("колличество студентов меньше чем у макимального элемента коллекции, элемент добавлен не будет");
+                System.out.println("количество студентов меньше или равно чем у максимального элемента коллекции, элемент добавлен не будет");
             }
         }
         else collection.add(studyGroup);
@@ -150,7 +153,7 @@ public class CollectionManager {
                     count++;
                 }
             }
-            System.out.println("колличество= " + count);
+            System.out.println("количество = " + count);
         } catch (IllegalArgumentException e) {
             System.err.println("Введено не корректное значение" + e);
         }
@@ -162,11 +165,14 @@ public class CollectionManager {
      * @param name имя
      */
     public void  filter_contains_name(String name){
+        boolean c =true;
         for(StudyGroup st:collection){
             if(name!=null && st.getName().toLowerCase().contains(name.toLowerCase())){
+                c=false;
                 System.out.println(st);
             }
         }
+        if(c) System.out.println("таких элементов нет");
     }
 
     /**

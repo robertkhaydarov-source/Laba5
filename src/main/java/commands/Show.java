@@ -1,6 +1,10 @@
 package commands;
 
 import manager.CollectionManager;
+import model.StudyGroup;
+
+import java.util.List;
+
 /**
  * Класс Show вывести в стандартный поток вывода все элементы коллекции в строковом представлении.
  *
@@ -25,7 +29,13 @@ public class Show implements Comand {
      * @param args аргументы команды
      */
     public void execute(String... args) {
-        System.out.println(collectionManager.show());
+        List<StudyGroup> studyGroups = collectionManager.showCollection();
+        if (studyGroups!=null){
+            for (StudyGroup st: studyGroups){
+                System.out.println(st);
+            }
+        }
+        else System.out.println("коллекция пуста");
     }
 
     @Override

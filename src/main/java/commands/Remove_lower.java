@@ -37,12 +37,18 @@ public class Remove_lower implements Comand{
     public void execute(String... args) {
         if (args.length == 12) {
             StudyGroup studyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), args);
-            if(studyGroup!=null)collectionManager.remove_lower(studyGroup);
+            if(studyGroup!=null){
+                collectionManager.remove_lower(studyGroup);
+                System.out.println("Элементы удалены");
+            }
         }
 
         else {
             StudyGroup consoleStudyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), inputManager.consoleArgs());
-            if(consoleStudyGroup!=null)collectionManager.remove_lower(consoleStudyGroup);
+            if(consoleStudyGroup!=null){
+                collectionManager.remove_lower(consoleStudyGroup);
+                System.out.println("Элементы удалены");
+            }
         }
     }
 

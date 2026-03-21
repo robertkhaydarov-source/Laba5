@@ -29,12 +29,10 @@ public class Remove_by_id implements Comand {
         try {
             long id = Long.parseLong(args[0]);
             collectionManager.remove_by_id(id);
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
             System.err.println("введен не корректный id");
         }
     }
-
-
         @Override
     public String getName() {
         return name;
