@@ -40,14 +40,21 @@ public class Remove_lower implements Command {
             if(studyGroup!=null){
                 collectionManager.remove_lower(studyGroup);
             }
+            if(collectionManager.remove_lower(studyGroup)){
+                System.out.println("элементы удалены");
+            }
         }
-
         else {
             StudyGroup consoleStudyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), inputManager.consoleArgs());
             if(consoleStudyGroup!=null){
                 collectionManager.remove_lower(consoleStudyGroup);
             }
+            if(collectionManager.remove_lower(consoleStudyGroup)){
+                System.out.println("элементы удалены");
+            }
+
         }
+
     }
 
     @Override

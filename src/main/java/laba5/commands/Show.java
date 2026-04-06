@@ -33,7 +33,9 @@ public class Show implements Command {
         if (!studyGroups.isEmpty()){
             for (StudyGroup st: studyGroups){
                 System.out.println(st);
+
             }
+            System.out.println("выведены все элементы коллекции");
         }
         else System.out.println("коллекция пуста");
     }

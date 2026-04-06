@@ -43,6 +43,7 @@ public class Update implements Command {
                 String[] newArgs = list.toArray(new String[0]);
                 StudyGroup studyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), newArgs);
                 if(studyGroup!=null) collectionManager.add(studyGroup);
+                System.out.println("элемент обновлен");
 
             }
             else if(args.length == 1){
@@ -51,7 +52,10 @@ public class Update implements Command {
                     return;
                 }
                 StudyGroup addstudyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), inputManager.consoleArgs());
-                if(addstudyGroup!=null)collectionManager.add(addstudyGroup);
+                if(addstudyGroup!=null){
+                    collectionManager.add(addstudyGroup);
+                }
+                System.out.println("элемент обновлен");
             }
             else System.out.println("не введен id");
         } catch (NumberFormatException e) {

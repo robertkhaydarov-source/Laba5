@@ -28,7 +28,9 @@ public class Remove_last implements Command {
     public void execute(String... args) {
         if(!collectionManager.showCollection().isEmpty()) {
             collectionManager.remove_last();
-            System.out.println("последний элемент удален");
+            if(!collectionManager.remove_last()){
+                System.out.println("последний элемент удален");
+            }
         }
         else System.out.println("коллекция пуста");
     }

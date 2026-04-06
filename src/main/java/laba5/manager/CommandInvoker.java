@@ -18,7 +18,9 @@ public class CommandInvoker  {
     {
         String[] arr = comand.trim().split("\\s+");
         String[] arg = Arrays.copyOfRange(arr, 1, arr.length);
-        if (comandMap.containsKey(arr[0])) comandMap.get(arr[0]).execute(arg);
+        if (comandMap.containsKey(arr[0])) {
+            comandMap.get(arr[0]).execute(arg);
+        }
         else System.out.println("такой команды не существует");
 
     }

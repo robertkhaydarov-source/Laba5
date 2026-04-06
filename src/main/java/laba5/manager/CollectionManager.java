@@ -65,14 +65,10 @@ public class CollectionManager {
         for(int i = 0; i<collection.size();i++){
             if(id == collection.get(i).getId()){
                 collection.remove(i);
-                System.out.println("элемент с введенным id удален");
+
                 f=true;
                 break;
             }
-        }
-        if (!f){
-            System.out.println("элемента с введенным id нет");
-
         }
         return f;
     }
@@ -100,26 +96,31 @@ public class CollectionManager {
      * Удаляет последний элемент коллекции.
      * Если коллекция пустая, операция не выполняется.
      */
-    public void remove_last(){
+    public boolean remove_last(){
+        boolean f= true;
         if(!collection.isEmpty()){
             collection.sort(null);
             collection.remove(collection.size()-1);
+            f = false;
         }
         else System.out.println("коллекция пустая");
-
+        return f;
     }
 
     /**
      * Удалить из коллекции все элементы, меньшие, чем заданный
      * @param studyGroup элемент
      */
-    public void remove_lower(StudyGroup studyGroup){
+    public boolean remove_lower(StudyGroup studyGroup){
+        boolean f = false;
         if (!collection.isEmpty()){
             collection.removeIf(el ->el.compareTo(studyGroup)<0);
-            System.out.println("элементы удалены");
+            if(collection.removeIf(el ->el.compareTo(studyGroup)<0)){
+                f=true;
+            }
         }
         else System.out.println("коллекция пуста");
-
+    return f;
     }
     /**
      * Добавляет элемент в коллекцию,
@@ -128,19 +129,22 @@ public class CollectionManager {
      *
      * @param studyGroup элемент для добавления
      */
-    public void add_if_max(StudyGroup studyGroup){
+    public boolean add_if_max(StudyGroup studyGroup){
+        boolean f = false;
         if (!collection.isEmpty()){
             StudyGroup max=Collections.max(collection);
             if (studyGroup.compareTo(max)>0){
                 collection.add(studyGroup);
+                f=true;
             }
             else {
                 currentId-=1;
-                System.out.println("количество студентов меньше или равно чем у максимального элемента коллекции, элемент добавлен не будет");
             }
         }
-        else collection.add(studyGroup);
-
+        else {
+            collection.add(studyGroup);
+        }
+        return f;
 
     }
 
@@ -159,24 +163,23 @@ public class CollectionManager {
             }
             System.out.println("количество = " + count);
         } catch (IllegalArgumentException e) {
-            System.err.println("Введено не корректное значение" + e);
+            System.err.println("Введено не корректное значение " + e);
         }
-
     }
 
     /**
      * Фильтрацию коллекции по имени.
      * @param name имя
      */
-    public void  filter_contains_name(String name){
-        boolean c =true;
+    public boolean filter_contains_name(String name){
+        boolean f = false;
         for(StudyGroup st:collection){
             if(name!=null && st.getName().toLowerCase().contains(name.toLowerCase())){
-                c=false;
+                f=true;
                 System.out.println(st);
             }
         }
-        if(c) System.out.println("таких элементов нет");
+        return f;
     }
 
     /**

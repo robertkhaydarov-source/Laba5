@@ -36,7 +36,7 @@ public class StudyGroupFactory {
         StudyGroup studyGroup = new StudyGroup(id, name, coordinates, creationDate, studentCount, shouldBeExpelled, formOfEducation, semester, person);
         if (studyGroup.validate()) return studyGroup;
         else {
-            System.out.println("объект не создан не валидные данные");
+            System.out.println("объект не создан, не валидные данные");
             return null;
         }
 

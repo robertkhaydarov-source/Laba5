@@ -1,6 +1,5 @@
 package laba5;
 
-import com.opencsv.exceptions.CsvException;
 import laba5.commands.*;
 import laba5.manager.*;
 import laba5.model.StudyGroup;
@@ -32,7 +31,7 @@ public class Main {
         CollectionManager collectionManager = new CollectionManager();
         CommandInvoker invoker = new CommandInvoker();
         StudyGroupFactory studyGroupFactory = new StudyGroupFactory(collectionManager);
-        FileManager fileManager = new FileManager(fileName);
+        FileCsvReader fileManager = new FileCsvReader(fileName);
         InputManager inputManager = new InputManager(scanner);
         invoker.register(new Help(invoker));
         invoker.register(new Info(collectionManager));
@@ -51,10 +50,14 @@ public class Main {
         invoker.register(new Print_field_ascending_should_be_expelled(collectionManager));
         invoker.register(new Execute_script(invoker, inputManager));
         try {
-            List<String[]> lines = fileManager.fileReader();
+            List<String[]> lines = fileManager.readCSV();
             for (String[] line:lines){
-                StudyGroup studyGroup=studyGroupFactory.createFromFile(ZonedDateTime.now(), line);
-                if(studyGroup!=null) collectionManager.add(studyGroup);
+                try{
+                    StudyGroup studyGroup=studyGroupFactory.createFromFile(ZonedDateTime.now(), line);
+                    if(studyGroup!=null) collectionManager.add(studyGroup);
+                }catch (IllegalArgumentException e){
+                    System.err.println("повреждены данные " + e.getMessage());
+                }
             }
             if (!collectionManager.showCollection().isEmpty()) System.out.println("элементы из файла добавлены в коллекцию");
             collectionManager.updateCurrentId();
@@ -62,8 +65,6 @@ public class Main {
             System.err.println("файла не существует " + e.getMessage());
         } catch (IOException e) {
             System.err.println("Ошибка ввода-вывода " + e.getMessage());
-        } catch (CsvException e) {
-            System.err.println("ошибка парсинга " + e.getMessage());
         }
         while (scanner.hasNextLine()) {
             String commandWithArgs = scanner.nextLine();

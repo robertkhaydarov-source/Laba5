@@ -16,7 +16,7 @@ import java.util.Scanner;
 public class InputManager {
 
     private Scanner scanner;
-    private boolean r=true;
+    private boolean inScript = false;
     public InputManager(Scanner scanner){
         this.scanner=scanner;
     }
@@ -28,18 +28,20 @@ public class InputManager {
      */
     public String[] consoleArgs(){
         ArrayList<String> arg = new ArrayList<>();
-        if (r) {System.out.println("Введите name:");}
+        if (!inScript) {System.out.println("Введите name:");}
         if (!scanner.hasNextLine()) return null;
         while (scanner.hasNextLine()){
             String name=scanner.nextLine();
             if(name.isBlank()){
-                if(r)System.out.println("имя не может быть пустым");
+                if(!inScript)System.out.println("имя не может быть пустым");
                 continue;
             }
             arg.add(name);
             break;
         }
-        if (r) {System.out.println("Введите координату x:");}
+        if (!inScript) {
+            System.out.println("Введите координату x:");
+        }
         if (!scanner.hasNextLine()) return null;
         while (scanner.hasNextLine()){
             String input = scanner.nextLine();
@@ -48,37 +50,37 @@ public class InputManager {
                 arg.add(input);
                 break;
             } catch (NumberFormatException e) {
-                if(r)System.out.println("неверный формат координаты x");
+                if(!inScript)System.out.println("неверный формат координаты x");
             }
         }
-        if (r) {System.out.println("Введите координату y:");}
+        if (!inScript) {System.out.println("Введите координату y:");}
         if (!scanner.hasNextLine()) return null;
         while (scanner.hasNextLine()){
             String input = scanner.nextLine();
             try {
                 long y=Long.parseLong(input);
                 if (y<=-728){
-                    if(r)System.out.println("неверный диапазон координаты y: введите y>-728");
+                    if(!inScript)System.out.println("неверный диапазон координаты y: введите y>-728");
                     continue;
                 }
                 arg.add(input);
                 break;
             } catch (NumberFormatException e) {
-                if(r)System.out.println("неверный формат координаты y");
+                if(!inScript)System.out.println("неверный формат координаты y");
             }
         }
-        if (r) {System.out.println("Введите количество студентов:");}
+        if (!inScript) {System.out.println("Введите количество студентов:");}
         readInt(arg);
-        if (r) {System.out.println("Введите количество студентов в списке на отчисление :");}
+        if (!inScript) {System.out.println("Введите количество студентов в списке на отчисление :");}
         readInt(arg);
-        if (r) {
+        if (!inScript) {
             System.out.println("Введите одну из форм обучения:" +'\n'+
                     "1 - DISTANCE_EDUCATION," + '\n'+
                     "2 - FULL_TIME_EDUCATION," + '\n'+
                     "3 - EVENING_CLASSES");
         }
         readEnum(FormOfEducation.class, arg);
-        if (r) {
+        if (!inScript) {
             System.out.println("Введите семестр:" + '\n' +
                     "1 - THIRD," + '\n' +
                     "2 - FOURTH," + '\n' +
@@ -86,43 +88,43 @@ public class InputManager {
                     "4 - SEVENTH");
         }
         readEnum(Semester.class, arg);
-        if (r) {System.out.println("Введите имя админа: ");}
+        if (!inScript) {System.out.println("Введите имя админа: ");}
         if (!scanner.hasNextLine()) return null;
         while (scanner.hasNextLine()){
             String name=scanner.nextLine();
             if(name.isBlank()){
-                if(r)System.out.println("имя не может быть пустым");
+                if(!inScript)System.out.println("имя не может быть пустым");
                 continue;
             }
             arg.add(name);
             break;
         }
-        if (r) {System.out.println("Введите паспортные данные админа группы: ");}
+        if (!inScript) {System.out.println("Введите паспортные данные админа группы: ");}
         if (!scanner.hasNextLine()) return null;
         while (scanner.hasNextLine()){
             String pasportId=scanner.nextLine();
             if(pasportId.length()>48 ){
-                if(r)System.out.println("не валидное значение");
+                if(!inScript)System.out.println("не валидное значение");
                 continue;
             }
             arg.add(pasportId);
             break;
         }
-        if (r) {System.out.println("Введите цвет глаз админа:" +'\n'+
+        if (!inScript) {System.out.println("Введите цвет глаз админа:" +'\n'+
                 "1 - GREEN" +'\n'+
                 "2 - RED," + '\n'+
                 "3 - BLACK," + '\n'+
                 "4 - ORANGE," +'\n'+
                 "5 - WHITE");}
         readEnum(Color.class, arg);
-        if (r) {System.out.println("Введите цвет волос админа:" +'\n'+
+        if (!inScript) {System.out.println("Введите цвет волос админа:" +'\n'+
                         "1 - GREEN" +'\n'+
                         "2 - RED," + '\n'+
                         "3 - BLACK," + '\n'+
                         "4 - ORANGE," +'\n'+
                         "5 - WHITE");}
         readEnum(Color.class, arg);
-        if (r) {System.out.println("Введите национальность админа:" +'\n' +
+        if (!inScript) {System.out.println("Введите национальность админа:" +'\n' +
                     "1 - RUSSIA," +'\n' +
                     "2 - GERMANY," +'\n' +
                     "3 - SPAIN," +'\n' +
@@ -186,7 +188,7 @@ public class InputManager {
                     arg.add(String.valueOf(constant));
                     break;
                 } catch (IllegalArgumentException r) {
-                    System.err.println("неверный формат" + r.getMessage());
+                    System.err.println("неверный формат " + r.getMessage());
                 }
             }
         }
@@ -194,10 +196,11 @@ public class InputManager {
 
     /**
      * Смена значения в зависимости от того выполняется ли скрпит.
-     * @param r флаг
+     * @param inScript флаг
      */
-    public void setR(boolean r) {
-        this.r = r;
+    public void setInScript(boolean inScript) {
+
+        this.inScript = inScript;
     }
 
     /**

@@ -29,6 +29,9 @@ public class Info implements Command {
         System.out.println(collectionManager.getType());
         System.out.println(collectionManager.getInitilizationDate());
         System.out.println(collectionManager.getSize());
+        if (collectionManager.showCollection().isEmpty()){
+            System.out.println("коллекция пуста");
+        }
 
     }
 

@@ -39,12 +39,22 @@ public class Add_if_max implements Command {
     public void execute(String... args) {
         if (args.length == 12) {
             StudyGroup studyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), args);
-            if(studyGroup!=null && (!collectionManager.showCollection().isEmpty())) collectionManager.add_if_max(studyGroup);
+            if(studyGroup!=null && (!collectionManager.showCollection().isEmpty())) {
+                collectionManager.add_if_max(studyGroup);
+            }
+            if (!collectionManager.add_if_max(studyGroup)){
+                System.out.println("количество студентов меньше или равно чем у максимального элемента коллекции, элемент добавлен не будет");
+            }
         }
 
         else {
             StudyGroup consoleStudyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), inputManager.consoleArgs());
-            if(consoleStudyGroup!=null && (!collectionManager.showCollection().isEmpty()))collectionManager.add_if_max(consoleStudyGroup);
+            if(consoleStudyGroup!=null && (!collectionManager.showCollection().isEmpty())){
+                collectionManager.add_if_max(consoleStudyGroup);
+            }
+            if (!collectionManager.add_if_max(consoleStudyGroup)){
+                System.out.println("количество студентов меньше или равно чем у максимального элемента коллекции, элемент добавлен не будет");
+            }
         }
     }
 

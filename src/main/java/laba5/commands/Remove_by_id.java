@@ -29,6 +29,12 @@ public class Remove_by_id implements Command {
         try {
             long id = Long.parseLong(args[0]);
             collectionManager.remove_by_id(id);
+            if(collectionManager.remove_by_id(id)){
+                System.out.println("элемент с введенным id удален");
+            }
+            else {
+                System.out.println("элемента с введенным id нет");
+            }
         } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
             System.err.println("введен не корректный id" + e.getMessage());
         }
