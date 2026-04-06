@@ -35,26 +35,19 @@ public class Remove_lower implements Command {
      * @param args аргументы команды
      */
     public void execute(String... args) {
+        StudyGroup studyGroup;
         if (args.length == 12) {
-            StudyGroup studyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), args);
-            if(studyGroup!=null){
-                collectionManager.remove_lower(studyGroup);
-            }
+             studyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), args);
+        }
+        else {
+             studyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), inputManager.consoleArgs());
+        }
+        if(studyGroup!=null){
             if(collectionManager.remove_lower(studyGroup)){
                 System.out.println("элементы удалены");
             }
+            else System.out.println("элементы не удалены");
         }
-        else {
-            StudyGroup consoleStudyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), inputManager.consoleArgs());
-            if(consoleStudyGroup!=null){
-                collectionManager.remove_lower(consoleStudyGroup);
-            }
-            if(collectionManager.remove_lower(consoleStudyGroup)){
-                System.out.println("элементы удалены");
-            }
-
-        }
-
     }
 
     @Override

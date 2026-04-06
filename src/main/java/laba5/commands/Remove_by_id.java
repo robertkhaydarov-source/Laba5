@@ -28,7 +28,6 @@ public class Remove_by_id implements Command {
     public void execute(String... args) {
         try {
             long id = Long.parseLong(args[0]);
-            collectionManager.remove_by_id(id);
             if(collectionManager.remove_by_id(id)){
                 System.out.println("элемент с введенным id удален");
             }

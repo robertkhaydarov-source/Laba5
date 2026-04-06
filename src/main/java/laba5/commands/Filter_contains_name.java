@@ -26,11 +26,12 @@ public class Filter_contains_name implements Command {
      * @param args аргументы команды
      */
     public void execute(String... args) {
+        if (collectionManager.showCollection().isEmpty()){
+            System.out.println("коллекция пуста");
+        }
         if (args.length==1){
-            collectionManager.filter_contains_name(args[0]);
-            if(!collectionManager.filter_contains_name(args[0])){
-                System.out.println("таких элементов нет");
-            }
+            if(collectionManager.filter_contains_name(args[0]));
+            else System.out.println("таких элементов нет");
         }
         else System.out.println("Введите имя без пробелов");
     }

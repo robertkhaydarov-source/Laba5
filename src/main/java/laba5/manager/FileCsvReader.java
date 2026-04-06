@@ -18,7 +18,6 @@ import java.util.List;
 public class FileCsvReader {
 
     private final String filename;
-    private String lastError = null;
 
     public FileCsvReader(String filename) {
         this.filename=filename;

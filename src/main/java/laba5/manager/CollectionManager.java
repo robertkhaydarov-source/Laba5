@@ -112,15 +112,13 @@ public class CollectionManager {
      * @param studyGroup элемент
      */
     public boolean remove_lower(StudyGroup studyGroup){
-        boolean f = false;
         if (!collection.isEmpty()){
-            collection.removeIf(el ->el.compareTo(studyGroup)<0);
-            if(collection.removeIf(el ->el.compareTo(studyGroup)<0)){
-                f=true;
-            }
+            return collection.removeIf(el ->el.compareTo(studyGroup)<0);
         }
-        else System.out.println("коллекция пуста");
-    return f;
+        else {
+            System.out.println("коллекция пуста");
+            return false;
+        }
     }
     /**
      * Добавляет элемент в коллекцию,
