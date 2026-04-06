@@ -33,7 +33,7 @@ public class StudyGroup implements Comparable<StudyGroup> {
     public boolean validate(){
         if(id<=0) return false;
         if(name==null || name.isEmpty()) return false;
-        if(!coordinates.validate() || coordinates==null) return false;
+        if(coordinates==null || !coordinates.validate()) return false;
         if(creationDate==null) return false;
         if(studentsCount<=0) return false;
         if(shouldBeExpelled<=0) return false;

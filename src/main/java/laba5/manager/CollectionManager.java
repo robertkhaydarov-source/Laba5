@@ -97,11 +97,11 @@ public class CollectionManager {
      * Если коллекция пустая, операция не выполняется.
      */
     public boolean remove_last(){
-        boolean f= true;
+        boolean f= false;
         if(!collection.isEmpty()){
             collection.sort(null);
             collection.remove(collection.size()-1);
-            f = false;
+            f = true;
         }
         else System.out.println("коллекция пустая");
         return f;
