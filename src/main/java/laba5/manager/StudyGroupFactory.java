@@ -19,27 +19,31 @@ public class StudyGroupFactory {
     }
 
     private StudyGroup createStudyGroup(ZonedDateTime creationDate, long id, String... args){
-        String name = args[0];
-        Long x = Long.parseLong(args[1]);
-        Long y = Long.parseLong(args[2]);
-        Coordinates coordinates = new Coordinates(x, y);
-        int studentCount = Integer.parseInt(args[3]);
-        Long shouldBeExpelled = Long.parseLong(args[4]);
-        FormOfEducation formOfEducation = FormOfEducation.valueOf(args[5].toUpperCase());
-        Semester semester = Semester.valueOf(args[6].toUpperCase());
-        String namePerson = args[7];
-        String passportId = args[8];
-        Color colorEye= Color.valueOf(args[9].toUpperCase());
-        Color colorHair= Color.valueOf(args[10].toUpperCase());
-        Country nationality=Country.valueOf(args[11].toUpperCase());
-        Person person = new Person(namePerson, passportId, colorEye, colorHair, nationality);
-        StudyGroup studyGroup = new StudyGroup(id, name, coordinates, creationDate, studentCount, shouldBeExpelled, formOfEducation, semester, person);
-        if (studyGroup.validate()) return studyGroup;
-        else {
-            System.out.println("объект не создан, не валидные данные");
-            return null;
+        try{
+            String name = args[0];
+            Long x = Long.parseLong(args[1]);
+            Long y = Long.parseLong(args[2]);
+            Coordinates coordinates = new Coordinates(x, y);
+            int studentCount = Integer.parseInt(args[3]);
+            Long shouldBeExpelled = Long.parseLong(args[4]);
+            FormOfEducation formOfEducation = FormOfEducation.valueOf(args[5].toUpperCase());
+            Semester semester = Semester.valueOf(args[6].toUpperCase());
+            String namePerson = args[7];
+            String passportId = args[8];
+            Color colorEye= Color.valueOf(args[9].toUpperCase());
+            Color colorHair= Color.valueOf(args[10].toUpperCase());
+            Country nationality=Country.valueOf(args[11].toUpperCase());
+            Person person = new Person(namePerson, passportId, colorEye, colorHair, nationality);
+            StudyGroup studyGroup = new StudyGroup(id, name, coordinates, creationDate, studentCount, shouldBeExpelled,formOfEducation, semester, person);
+            if (studyGroup.validate()) return studyGroup;
+            else {
+                System.out.println("объект не создан, не валидные данные");
+                return null;
+            }
+        } catch (Exception e) {
+            System.out.println("объект не создан, неверные данные" + e.getMessage());
         }
-
+        return null;
     }
 
     /**

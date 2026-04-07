@@ -52,8 +52,14 @@ public class CollectionManager {
      *
      * @param studyGroup объект StudyGroup, который необходимо добавить
      */
-    public void add(StudyGroup studyGroup){
+    public boolean add(StudyGroup studyGroup){
+        for (StudyGroup st : collection)
+            if(st.getId() == studyGroup.getId()){
+                System.out.println("Элемент с id=" + studyGroup.getId() + " уже существует");
+                return false;
+            }
         collection.add(studyGroup);
+        return true;
     }
     /**
      * Удаляет элемент коллекции по его идентификатору.

@@ -36,20 +36,32 @@ public class Add implements Command {
      * @param args аргументы команды
      */
     public void execute(String... args) {
-        if (args.length == 12) {
-            StudyGroup studyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), args);
-            if(studyGroup!=null) collectionManager.add(studyGroup);
-            System.out.println("элемент добавлен в коллекцию");
+            if (args.length == 12) {
+                try {
+                    StudyGroup studyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), args);
+                    if (studyGroup != null) {
+                        if (collectionManager.add(studyGroup)) {
+                            System.out.println("элемент добавлен в коллекцию");
+                        }
+                    }
+                } catch (IllegalArgumentException e) {
+                    System.err.println(e.getMessage());
+                }
+            }
+            else {
+                try {
+                    StudyGroup consoleStudyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), inputManager.consoleArgs());
+                    if(consoleStudyGroup!=null){
+                        if(collectionManager.add(consoleStudyGroup)){
+                            System.out.println("элемент добавлен в коллекцию");
+                        }
+                    }
+                }catch (IllegalArgumentException e){
+                    System.err.println(e.getMessage());
+                }
+
+            }
         }
-
-        else {
-            StudyGroup consoleStudyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), inputManager.consoleArgs());
-            if(consoleStudyGroup!=null)collectionManager.add(consoleStudyGroup);
-            System.out.println("элемент добавлен в коллекцию");
-        }
-
-    }
-
     @Override
     public String getName() {
         return name;
