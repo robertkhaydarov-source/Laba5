@@ -14,7 +14,7 @@ public class Exit implements Command {
      * @param args аргументы команды
      */
     public void execute(String... args) {
-        System.out.println("закрытие консольного приложения ...");
+        System.out.println("закрытие консольного приложения");
         System.exit(0);
     }
     @Override

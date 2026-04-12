@@ -12,12 +12,25 @@ import java.util.Map;
  * @version 1.0
  */
 public class CommandInvoker  {
-
+    private final InputManager inputManager;
     private final Map<String, Command> comandMap =new HashMap<>();
+
+    public CommandInvoker(InputManager inputManager) {
+        this.inputManager = inputManager;
+    }
+
     public void execute(String comand)
     {
-        String[] arr = comand.trim().split("\\s+");
-        String[] arg = Arrays.copyOfRange(arr, 1, arr.length);
+        String[] arr;
+        String[] arg;
+        if(inputManager.isInScript()){
+            arr = comand.trim().split(" ", 2);
+            arg = arr.length>1 ? new String[]{arr[1]}:new String[0];
+        }
+        else {
+            arr = comand.trim().split("\\s+");
+            arg = Arrays.copyOfRange(arr, 1, arr.length);
+        }
         if (comandMap.containsKey(arr[0])) {
             comandMap.get(arr[0]).execute(arg);
         }

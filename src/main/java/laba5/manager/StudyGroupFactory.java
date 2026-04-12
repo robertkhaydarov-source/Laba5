@@ -41,7 +41,7 @@ public class StudyGroupFactory {
                 return null;
             }
         } catch (Exception e) {
-            System.out.println("объект не создан, неверные данные" + e.getMessage());
+            System.out.println("объект не создан, неверные данные " + e.getMessage());
         }
         return null;
     }

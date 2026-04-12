@@ -1,6 +1,7 @@
 package laba5.commands;
 
 import laba5.manager.CollectionManager;
+import laba5.manager.FileCsvReader;
 import laba5.manager.InputManager;
 import laba5.manager.StudyGroupFactory;
 import laba5.model.StudyGroup;
@@ -19,6 +20,7 @@ public class Update implements Command {
 
     private final InputManager inputManager;
     private final StudyGroupFactory studyGroupFactory;
+    private final FileCsvReader fileCsvReader;
 
     /**
      * Ищет элемент по id удаляет его и создает новый
@@ -26,48 +28,51 @@ public class Update implements Command {
      */
     public void execute(String... args) {
         try {
-            if (args.length == 13){
-                long id_update=Long.parseLong(args[0]);
-                if(!collectionManager.showCollection().isEmpty()){
-                    if(collectionManager.remove_by_id(id_update));
-                    else {
-                        System.out.println("элемент не найден");
-                        return;
-                    }
-                }
-                else {
-                    System.out.println("коллекция пуста");
+            if (args.length == 0) {
+                System.out.println("не введен id");
+            }
+            long id_update = Long.parseLong(args[0]);
+            if (!collectionManager.remove_by_id(id_update)) {
+                System.out.println("элемент не найден");
+                return;
+            }
+            StudyGroup studyGroup;
+            if (inputManager.isInScript()) {
+                if (args.length != 2) {
+                    System.out.println("неверное количество аргументов для скрипта");
                     return;
                 }
-
+                String[] parsedArgs = fileCsvReader.parsingCSV(args[1]);
+                if (parsedArgs != null) {
+                    System.out.println("Ошибка аргументов");
+                    return;
+                }
+                studyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), parsedArgs);
+            }
+            else if (args.length == 13) {
                 List<String> list = new ArrayList<>(Arrays.asList(args));
                 list.remove(0);
                 String[] newArgs = list.toArray(new String[0]);
-                StudyGroup studyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), newArgs);
-                if(studyGroup!=null) collectionManager.add(studyGroup);
-                System.out.println("элемент обновлен");
+                studyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), newArgs);
+                }
+            else if (args.length == 1) {
+                studyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), inputManager.consoleArgs());
+            }
+            else {
+                System.out.println("неверное количество аргументов");
+                studyGroup=null;
 
             }
-            else if(args.length == 1){
-                long id_update=Long.parseLong(args[0]);
-                if(collectionManager.remove_by_id(id_update));
-                else {
-                    System.out.println("элемент не найден");
-                    return;
-                }
-                StudyGroup addstudyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), inputManager.consoleArgs());
-                if(addstudyGroup!=null){
-                    collectionManager.add(addstudyGroup);
-                }
+            if (studyGroup != null) {
+                collectionManager.add(studyGroup);
                 System.out.println("элемент обновлен");
             }
-            else System.out.println("не введен id");
         } catch (NumberFormatException e) {
-            System.err.println("Ошибка при вводе id: " + e.getMessage());;
+            System.err.println("Ошибка при вводе id: " + e.getMessage());
+        }catch (IllegalArgumentException e){
+            System.err.println(e.getMessage());
         }
-
     }
-
     @Override
     public String getName() {
         return name;
@@ -87,9 +92,10 @@ public class Update implements Command {
      * @param inputManager менеджер ввода
      * @param studyGroupFactory фабрика объектов StudyGroup
      */
-    public Update(InputManager inputManager, StudyGroupFactory studyGroupFactory, CollectionManager collectionManager) {
+    public Update(InputManager inputManager, StudyGroupFactory studyGroupFactory, FileCsvReader fileCsvReader, CollectionManager collectionManager) {
         this.inputManager = inputManager;
         this.studyGroupFactory = studyGroupFactory;
+        this.fileCsvReader = fileCsvReader;
         this.collectionManager = collectionManager;
 
 

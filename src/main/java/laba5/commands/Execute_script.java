@@ -50,7 +50,7 @@ public class Execute_script implements Command {
                 }
                 try (Scanner scanner1 = new Scanner(fileScript)) {
                     inputManager.setScanner(scanner1);
-                    inputManager.setInScript(false);
+                    inputManager.setInScript(true);
                     while (scanner1.hasNextLine()) {
                         commandInvoker.execute(scanner1.nextLine());
                     }
@@ -58,7 +58,7 @@ public class Execute_script implements Command {
                 } catch (FileNotFoundException e) {
                     System.err.println("Ошибка при чтении" + e.getMessage());
                 } finally {
-                    inputManager.setInScript(true);
+                    inputManager.setInScript(false);
                     inputManager.setScanner(scanner0);
                     execute.remove(args[0]);
                 }

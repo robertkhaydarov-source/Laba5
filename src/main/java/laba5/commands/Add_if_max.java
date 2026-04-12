@@ -1,6 +1,7 @@
 package laba5.commands;
 
 import laba5.manager.CollectionManager;
+import laba5.manager.FileCsvReader;
 import laba5.manager.InputManager;
 import laba5.manager.StudyGroupFactory;
 import laba5.model.StudyGroup;
@@ -18,6 +19,7 @@ public class Add_if_max implements Command {
     private final CollectionManager collectionManager;
     private final StudyGroupFactory studyGroupFactory;
     private final InputManager inputManager;
+    private final FileCsvReader fileCsvReader;
     /**
      * Конструктор команды Add_if_max.
      *
@@ -25,10 +27,11 @@ public class Add_if_max implements Command {
      * @param inputManager менеджер ввода
      * @param studyGroupFactory фабрика объектов StudyGroup
      */
-    public Add_if_max(CollectionManager collectionManager, StudyGroupFactory studyGroupFactory, InputManager inputManager) {
+    public Add_if_max(CollectionManager collectionManager, StudyGroupFactory studyGroupFactory, InputManager inputManager, FileCsvReader fileCsvReader) {
         this.collectionManager = collectionManager;
         this.studyGroupFactory = studyGroupFactory;
         this.inputManager = inputManager;
+        this.fileCsvReader = fileCsvReader;
     }
 
     /**
@@ -37,24 +40,41 @@ public class Add_if_max implements Command {
      * @param args аргументы команды
      */
     public void execute(String... args) {
-        if (args.length == 12) {
-            StudyGroup studyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), args);
-            if(studyGroup!=null && (!collectionManager.showCollection().isEmpty())) {
+        StudyGroup studyGroup;
+        try {
+            if (args.length == 12) {
+                studyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), args);
+            }
+            else if (inputManager.isInScript()){
+                if (args.length != 1){
+                    System.out.println("неверное количество аргументов для скрипта");
+                    return;
+                }
+                String[] parsedArgs = fileCsvReader.parsingCSV(args[0]);
+                if (parsedArgs == null) {
+                    System.out.println("Ошибка аргументов");
+                    return;
+                }
+                studyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), parsedArgs);
+            }
+            else if (args.length == 0){
+                studyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), inputManager.consoleArgs());
                 collectionManager.add_if_max(studyGroup);
             }
-            if (!collectionManager.add_if_max(studyGroup)){
-                System.out.println("количество студентов меньше или равно чем у максимального элемента коллекции, элемент добавлен не будет");
+            else {
+                System.out.println("неверное количество аргументов");
+                studyGroup = null;
+            }
+        boolean added =collectionManager.add_if_max(studyGroup);
+        if (studyGroup!=null) {
+            if (!added) {
+                System.out.println("элемент не добавлен (не максимальный)");
+            } else {
+                System.out.println("элемент добавлен, условие выполнено");
             }
         }
-
-        else {
-            StudyGroup consoleStudyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), inputManager.consoleArgs());
-            if(consoleStudyGroup!=null && (!collectionManager.showCollection().isEmpty())){
-                collectionManager.add_if_max(consoleStudyGroup);
-            }
-            if (!collectionManager.add_if_max(consoleStudyGroup)){
-                System.out.println("количество студентов меньше или равно чем у максимального элемента коллекции, элемент добавлен не будет");
-            }
+        }catch (IllegalArgumentException e){
+            System.err.println(e.getMessage());
         }
     }
 

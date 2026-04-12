@@ -29,22 +29,22 @@ public class Main {
         }
         Scanner scanner =new Scanner(System.in);
         CollectionManager collectionManager = new CollectionManager();
-        CommandInvoker invoker = new CommandInvoker();
         StudyGroupFactory studyGroupFactory = new StudyGroupFactory(collectionManager);
         FileCsvReader fileManager = new FileCsvReader(fileName);
         InputManager inputManager = new InputManager(scanner);
+        CommandInvoker invoker = new CommandInvoker(inputManager);
         invoker.register(new Help(invoker));
         invoker.register(new Info(collectionManager));
         invoker.register(new Show(collectionManager));
         invoker.register(new Clear(collectionManager));
         invoker.register(new Remove_by_id(collectionManager));
-        invoker.register(new Add(collectionManager, inputManager, studyGroupFactory));
-        invoker.register(new Update(inputManager, studyGroupFactory, collectionManager));
+        invoker.register(new Add(collectionManager, inputManager, studyGroupFactory, fileManager));
+        invoker.register(new Update(inputManager, studyGroupFactory, fileManager, collectionManager));
         invoker.register(new Save(collectionManager, fileName));
         invoker.register(new Exit());
         invoker.register(new Remove_last(collectionManager));
-        invoker.register(new Add_if_max(collectionManager, studyGroupFactory, inputManager));
-        invoker.register(new Remove_lower(collectionManager, inputManager, studyGroupFactory));
+        invoker.register(new Add_if_max(collectionManager, studyGroupFactory, inputManager, fileManager));
+        invoker.register(new Remove_lower(collectionManager, inputManager, studyGroupFactory, fileManager));
         invoker.register(new Count_by_form_of_education(collectionManager));
         invoker.register(new Filter_contains_name(collectionManager));
         invoker.register(new Print_field_ascending_should_be_expelled(collectionManager));

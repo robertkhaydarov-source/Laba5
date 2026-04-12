@@ -203,6 +203,10 @@ public class InputManager {
         this.inScript = inScript;
     }
 
+    public boolean isInScript() {
+        return inScript;
+    }
+
     /**
      * @return возвращает текущий сканер.
      */

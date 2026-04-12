@@ -51,6 +51,22 @@ public class FileCsvReader {
         }
         return fileArgs;
     }
+    public String[] parsingCSV(String line){
+        try {
+            line=line.trim();
+
+            if(line.startsWith("(") && line.endsWith(")")){
+                line = line.substring(1, line.length()-1);
+            }
+            try (CSVReader reader = new CSVReader(new StringReader(line))){
+                return reader.readNext();
+            }
+        } catch (Exception e) {
+            System.err.println("Ошибка парсинга CSV строки: " + e.getMessage());
+            return null;
+        }
+
+    }
 }
 
 
