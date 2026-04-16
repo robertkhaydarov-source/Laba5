@@ -19,10 +19,10 @@ public class Coordinates {
     /**
      * @return проверка валидации
      */
-    public boolean validate(){
-        if(x==null) return false;
-        if (y<=-728 || y==null) return false;
-        return true;
+    public String validate(){
+        if(x==null) return "x не может быть пустым";
+        if (y<=-728 || y==null) return "y должен быть больше -728 и пустым";
+        return "validate";
     }
 
     public String getX() {

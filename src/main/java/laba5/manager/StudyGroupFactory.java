@@ -35,9 +35,9 @@ public class StudyGroupFactory {
             Country nationality=Country.valueOf(args[11].toUpperCase());
             Person person = new Person(namePerson, passportId, colorEye, colorHair, nationality);
             StudyGroup studyGroup = new StudyGroup(id, name, coordinates, creationDate, studentCount, shouldBeExpelled,formOfEducation, semester, person);
-            if (studyGroup.validate()) return studyGroup;
+            if (studyGroup.validate().equals("validate")) return studyGroup;
             else {
-                System.out.println("объект не создан, не валидные данные");
+                System.out.println(studyGroup.validate() + ", элемент c id=" + id + " не добавлен в коллекцию");
                 return null;
             }
         } catch (Exception e) {

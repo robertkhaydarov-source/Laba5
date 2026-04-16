@@ -30,15 +30,15 @@ public class StudyGroup implements Comparable<StudyGroup> {
         this.groupAdmin=groupAdmin;
 
     }
-    public boolean validate(){
-        if(id<=0) return false;
-        if(name==null || name.isEmpty()) return false;
-        if(coordinates==null || !coordinates.validate()) return false;
-        if(creationDate==null) return false;
-        if(studentsCount<=0) return false;
-        if(shouldBeExpelled<=0) return false;
-        if(groupAdmin==null || !groupAdmin.validate()) return false;
-        return true;
+    public String validate(){
+        if(id<=0) return "id должен быть больше 0";
+        if(name==null || name.isEmpty()) return "имя не может быть пустым";
+        if(coordinates==null || !coordinates.validate().equals("validate")) return coordinates.validate();
+        if(creationDate==null) return "время создания не может быть нулевым";
+        if(studentsCount<=0) return "количество студентов должно быть больше 0";
+        if(shouldBeExpelled<=0) return "количество студентов на отчисление должно быть больше 0";
+        if(groupAdmin==null || !groupAdmin.validate().equals("validate")) return groupAdmin.validate();
+        return "validate";
     }
     public long getId(){
             return id;

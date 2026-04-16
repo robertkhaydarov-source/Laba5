@@ -26,11 +26,11 @@ public class Person {
     public String getName() {
         return name;
     }
-    public boolean validate(){
-            if(name==null || name.isEmpty()) return false;
-            if(passportID.length()>48) return false;
-            if(eyeColor==null|| hairColor==null || nationality==null)return false;
-            return true;
+    public String validate(){
+            if(name==null || name.isEmpty()) return "имя не может быть пустым";
+            if(passportID.length()>48) return "паспортные данные должны быть меньше 48";
+            if(eyeColor==null|| hairColor==null || nationality==null)return "цвета и национальность не могут быть пустыми";
+            return "validate";
     }
     public Color getEyeColor() {
         return eyeColor;
