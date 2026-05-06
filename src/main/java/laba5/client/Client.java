@@ -45,9 +45,12 @@ public class Client {
                     request = new Request(arg[0], arg[1],  studyGroup1);
                     break;
                 case "save":
+                    request=new Request(commandWithArg);
                     logger.error("Only server command");
+                    continue;
                 case "exit":
                     System.exit(0);
+                    request=new Request(commandWithArg);
                     break;
                 default:
                     request=new Request(commandWithArg);

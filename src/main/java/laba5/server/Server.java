@@ -28,7 +28,11 @@ public class Server {
             ByteBuffer buffer = ByteBuffer.allocate(65535 );
             CollectionManager collectionManager = new CollectionManager();
             StudyGroupFactory studyGroupFactory = new StudyGroupFactory(collectionManager);
-            String fileName = System.getenv("FILE_NAME");
+          String fileName = System.getenv("FILE_NAME");
+          if (fileName == null) {
+                logger.error("Environment variable FILE_NAME not set");
+                return;
+            }
             FileCsvReader fileManager = new FileCsvReader(fileName);
             try {
                 List<String[]> lines = fileManager.readCSV();
@@ -72,37 +76,39 @@ public class Server {
             while(true){
                 SocketAddress clientAddress = channel.receive(buffer);
                 if(clientAddress!=null) {
-                    logger.info("New connection from {}" + clientAddress);
+                    logger.info("New connection from {}", clientAddress);
                     buffer.flip();
                     byte[] bytes = buffer.array();
                     buffer.clear();
                     ObjectInputStream obj = new ObjectInputStream(new ByteArrayInputStream(bytes));
                     try {
                         Request request = (Request) obj.readObject();
-                        if(request.getName().contains("save")){
-                            invoker.execute("save");
-                        }
-                        if(request.getName().contains("exit")){
-                            logger.error("Only client command");
-                        }
-                        logger.debug("Received request: {}", request.getName());
                         String result;
-                        if(request.getStudyGroup()!=null){
-                            result = invoker.execute(request);
+                        if ("save".equals(request.getName())) {
+                            // Разрешить save - выполнить 1 раз
+                            result = invoker.execute("save");
+                            logger.info("Save command executed from network");
+                        } else if ("exit".equals(request.getName())) {
+                            // Отклонить exit - это только для клиента
+                            result = "Команда exit недоступна на сервере";
                         } else {
-                            result = invoker.execute(request.getName() + " " + (request.getArgs()!=null ? request.getArgs() : ""));
+                            if (request.getStudyGroup() != null) {
+                                result = invoker.execute(request);
+                            } else {
+                                result = invoker.execute(request.getName() + " " + (request.getArgs() != null ? request.getArgs() : ""));
+                            }
                         }
-                        System.out.println("Получен запрос: " + request.getName() + " studyGroup: " + request.getStudyGroup());
-                        System.out.println("Результат: " + result);
-                        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                        ObjectOutputStream oos = new ObjectOutputStream(bos);
-                        oos.writeObject(new Response(result));
-                        oos.flush();
-                        ByteBuffer buffer1 = ByteBuffer.wrap(bos.toByteArray());
-                        channel.send(buffer1, clientAddress);
-                        logger.info("Response sent to: {}", clientAddress);
-                    } catch (ClassNotFoundException e) {
-                        logger.error("Error processing request", e);
+                            System.out.println("Получен запрос: " + request.getName() + " studyGroup: " + request.getStudyGroup());
+                            System.out.println("Результат: " + result);
+                            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                            ObjectOutputStream oos = new ObjectOutputStream(bos);
+                            oos.writeObject(new Response(result));
+                            oos.flush();
+                            ByteBuffer buffer1 = ByteBuffer.wrap(bos.toByteArray());
+                            channel.send(buffer1, clientAddress);
+                            logger.info("Response sent to: {}", clientAddress);
+                    } catch (ClassNotFoundException ex) {
+                        logger.error("Error processing request", ex);
                     }
                 }
             }
