@@ -17,7 +17,7 @@ public class AddServer implements Command {
 
     @Override
     public String execute(String args, StudyGroup studyGroup) {
-        if(collectionManager.add(studyGroup)){
+        if(collectionManager.add(studyGroup).isEmpty()){
            return "элемент добавлен";
         }
         return "ошибка добавления";

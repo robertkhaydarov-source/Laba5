@@ -45,8 +45,8 @@ public class Client {
                     request = new Request(arg[0], arg[1],  studyGroup1);
                     break;
                 case "save":
-                    request=new Request(commandWithArg);
-                    logger.error("Only server command");
+                    System.out.println("Команда save доступна только на сервере");
+                    logger.warn("Client tried to execute save command");
                     continue;
                 case "exit":
                     System.exit(0);

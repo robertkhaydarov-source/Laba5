@@ -63,7 +63,7 @@ public class Add implements Command {
                 studyGroup = null;
             }
             if (studyGroup != null) {
-                if (collectionManager.add(studyGroup)) {
+                if (collectionManager.add(studyGroup).isEmpty()) {
                     return "элемент добавлен в коллекцию";
                 }
             }

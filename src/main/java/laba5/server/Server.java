@@ -16,6 +16,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Scanner;
 
 public class Server {
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
@@ -73,6 +74,21 @@ public class Server {
                 invoker.execute("save");
                 System.out.println("колекция сохранена");
             }));
+            Thread consoleThread =new Thread(()->{
+                Scanner scanner = new Scanner(System.in);
+                while(true){
+                    String comand = scanner.nextLine();
+                    if("save".equals(comand)){
+                        invoker.execute("save");
+                        System.out.println("Сохранено!");
+                    }
+                    else if ("exit".equals(comand)){
+                        System.exit(0);
+                    }
+                }
+            });
+            consoleThread.setDaemon(true);
+            consoleThread.start();
             while(true){
                 SocketAddress clientAddress = channel.receive(buffer);
                 if(clientAddress!=null) {
@@ -84,11 +100,7 @@ public class Server {
                     try {
                         Request request = (Request) obj.readObject();
                         String result;
-                        if ("save".equals(request.getName())) {
-                            // Разрешить save - выполнить 1 раз
-                            result = invoker.execute("save");
-                            logger.info("Save command executed from network");
-                        } else if ("exit".equals(request.getName())) {
+                         if ("exit".equals(request.getName())) {
                             // Отклонить exit - это только для клиента
                             result = "Команда exit недоступна на сервере";
                         } else {
