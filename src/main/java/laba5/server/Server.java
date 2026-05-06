@@ -6,6 +6,8 @@ import laba5.server.manager.*;
 import laba5.shared.actions.Request;
 import laba5.shared.actions.Response;
 import laba5.shared.model.StudyGroup;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -16,10 +18,12 @@ import java.time.ZonedDateTime;
 import java.util.List;
 
 public class Server {
+    private static final Logger logger = LoggerFactory.getLogger(Server.class);
     public static void main(String[] args){
         try(DatagramChannel channel = DatagramChannel.open()) {
             InetSocketAddress inetSocketAddress = new InetSocketAddress("localhost", 7777);
             channel.bind(inetSocketAddress);
+            logger.info("Server started on port 7777");
             channel.configureBlocking(false);
             ByteBuffer buffer = ByteBuffer.allocate(65535 );
             CollectionManager collectionManager = new CollectionManager();
@@ -68,12 +72,20 @@ public class Server {
             while(true){
                 SocketAddress clientAddress = channel.receive(buffer);
                 if(clientAddress!=null) {
+                    logger.info("New connection from {}" + clientAddress);
                     buffer.flip();
                     byte[] bytes = buffer.array();
                     buffer.clear();
                     ObjectInputStream obj = new ObjectInputStream(new ByteArrayInputStream(bytes));
                     try {
                         Request request = (Request) obj.readObject();
+                        if(request.getName().contains("save")){
+                            invoker.execute("save");
+                        }
+                        if(request.getName().contains("exit")){
+                            logger.error("Only client command");
+                        }
+                        logger.debug("Received request: {}", request.getName());
                         String result;
                         if(request.getStudyGroup()!=null){
                             result = invoker.execute(request);
@@ -88,8 +100,9 @@ public class Server {
                         oos.flush();
                         ByteBuffer buffer1 = ByteBuffer.wrap(bos.toByteArray());
                         channel.send(buffer1, clientAddress);
+                        logger.info("Response sent to: {}", clientAddress);
                     } catch (ClassNotFoundException e) {
-                        System.err.println(e.getMessage());
+                        logger.error("Error processing request", e);
                     }
                 }
             }

@@ -6,6 +6,8 @@ import laba5.server.manager.StudyGroupFactory;
 import laba5.shared.actions.Request;
 import laba5.shared.actions.Response;
 import laba5.shared.model.StudyGroup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -16,9 +18,11 @@ import java.util.Scanner;
 
 
 public class Client {
+    private final static Logger logger = LoggerFactory.getLogger(Client.class);
     public static void main(String... args) throws IOException, ClassNotFoundException {
         Scanner scanner = new Scanner(System.in);
         InetSocketAddress serverAddress = new InetSocketAddress("localhost", 7777);
+        logger.info("Server Address: {}", serverAddress.getAddress().getHostAddress());
         DatagramChannel channel = DatagramChannel.open();
         channel.configureBlocking(false);
         InputManager inputManager = new InputManager(scanner);
@@ -40,16 +44,23 @@ public class Client {
                     StudyGroup studyGroup1 = studyGroupFactory.createFromConsole(ZonedDateTime.now(), inputManager.consoleArgs());
                     request = new Request(arg[0], arg[1],  studyGroup1);
                     break;
+                case "save":
+                    logger.error("Only server command");
+                case "exit":
+                    System.exit(0);
+                    break;
                 default:
                     request=new Request(commandWithArg);
                     break;
             }
+            logger.debug("Request details: {}", request);
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             ObjectOutputStream os = new ObjectOutputStream(bytes);
             os.writeObject(request);
             os.flush();
             ByteBuffer bf = ByteBuffer.wrap(bytes.toByteArray());
             channel.send(bf, serverAddress);
+            logger.info("Server Response: {}", bytes);
             ByteBuffer reciveBuffer = ByteBuffer.allocate(65535);
             long startTime = System.currentTimeMillis();
             while (channel.receive(reciveBuffer) == null) {
