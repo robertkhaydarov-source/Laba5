@@ -1,6 +1,6 @@
 package laba5.client.commands;
 
-import laba5.manager.CommandInvoker;
+import laba5.server.manager.CommandInvoker;
 import laba5.shared.model.StudyGroup;
 
 /**

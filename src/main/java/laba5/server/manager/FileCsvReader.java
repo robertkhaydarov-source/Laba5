@@ -1,4 +1,4 @@
-package laba5.manager;
+package laba5.server.manager;
 
 
 import com.opencsv.CSVReader;

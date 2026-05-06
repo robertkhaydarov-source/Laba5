@@ -1,9 +1,9 @@
 package laba5.client.commands;
 
-import laba5.manager.CollectionManager;
-import laba5.manager.FileCsvReader;
-import laba5.manager.InputManager;
-import laba5.manager.StudyGroupFactory;
+import laba5.server.manager.CollectionManager;
+import laba5.server.manager.FileCsvReader;
+import laba5.server.manager.InputManager;
+import laba5.server.manager.StudyGroupFactory;
 import laba5.shared.model.StudyGroup;
 
 import java.time.ZonedDateTime;

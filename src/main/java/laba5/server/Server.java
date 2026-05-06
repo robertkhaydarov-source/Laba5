@@ -1,11 +1,8 @@
 package laba5.server;
 
 import laba5.client.commands.*;
-import laba5.manager.*;
-import laba5.server.commandServer.AddIfMaxServer;
-import laba5.server.commandServer.AddServer;
-import laba5.server.commandServer.RemoveLowerServer;
-import laba5.server.commandServer.UpdateServer;
+import laba5.server.commandServer.*;
+import laba5.server.manager.*;
 import laba5.shared.actions.Request;
 import laba5.shared.actions.Response;
 import laba5.shared.model.StudyGroup;

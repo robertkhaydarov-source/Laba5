@@ -1,13 +1,8 @@
 package laba5.server.commandServer;
 
 import laba5.client.commands.Command;
-import laba5.manager.CollectionManager;
+import laba5.server.manager.CollectionManager;
 import laba5.shared.model.StudyGroup;
-
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class UpdateServer implements Command {
     private final CollectionManager collectionManager;

@@ -1,8 +1,8 @@
 package laba5.client;
 
-import laba5.manager.CollectionManager;
-import laba5.manager.InputManager;
-import laba5.manager.StudyGroupFactory;
+import laba5.server.manager.CollectionManager;
+import laba5.server.manager.InputManager;
+import laba5.server.manager.StudyGroupFactory;
 import laba5.shared.actions.Request;
 import laba5.shared.actions.Response;
 import laba5.shared.model.StudyGroup;
@@ -51,7 +51,13 @@ public class Client {
             ByteBuffer bf = ByteBuffer.wrap(bytes.toByteArray());
             channel.send(bf, serverAddress);
             ByteBuffer reciveBuffer = ByteBuffer.allocate(65535);
-            while (channel.receive(reciveBuffer) == null) {}
+            long startTime = System.currentTimeMillis();
+            while (channel.receive(reciveBuffer) == null) {
+                if (System.currentTimeMillis() - startTime > 5000) {
+                    System.out.println("сервер недоступен");
+                    break;
+                }
+            }
             byte[] bytes1 = reciveBuffer.array();
             reciveBuffer.clear();
             ObjectInputStream oos1 = new ObjectInputStream(new ByteArrayInputStream(bytes1));

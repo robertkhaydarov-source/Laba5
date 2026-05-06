@@ -1,7 +1,8 @@
-package laba5.client.commands;
+package laba5.server.commandServer;
 
 import com.opencsv.CSVWriter;
-import laba5.manager.CollectionManager;
+import laba5.client.commands.Command;
+import laba5.server.manager.CollectionManager;
 import laba5.shared.model.StudyGroup;
 
 import java.io.FileWriter;

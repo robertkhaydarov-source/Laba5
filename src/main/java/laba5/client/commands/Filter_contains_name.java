@@ -1,6 +1,6 @@
 package laba5.client.commands;
 
-import laba5.manager.CollectionManager;
+import laba5.server.manager.CollectionManager;
 import laba5.shared.model.StudyGroup;
 
 /**
@@ -28,15 +28,21 @@ public class Filter_contains_name implements Command {
      * @param args аргументы команды
      */
     public String execute(String... args) {
-        if (collectionManager.showCollection().isEmpty()){
+        if (collectionManager.showCollection().isEmpty()) {
             return "коллекция пуста";
         }
-        if (args.length==1){
-            if(collectionManager.filter_contains_name(args[0]));
-            else return "таких элементов нет";
+
+        if (args.length != 1) {
+            return "Введите имя без пробелов";
         }
-        else return "Введите имя без пробелов";
-        return "";
+
+        String result = collectionManager.filter_contains_name(args[0]);
+
+        if (result.equals("нет совпадений")) {
+            return "таких элементов нет";
+        }
+
+        return result;
     }
 
     @Override

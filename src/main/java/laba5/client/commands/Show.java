@@ -1,6 +1,6 @@
 package laba5.client.commands;
 
-import laba5.manager.CollectionManager;
+import laba5.server.manager.CollectionManager;
 import laba5.shared.model.StudyGroup;
 
 import java.util.List;

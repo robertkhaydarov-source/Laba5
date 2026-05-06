@@ -1,12 +1,14 @@
-package laba5.manager;
+package laba5.server.manager;
 
 import laba5.shared.model.FormOfEducation;
 import laba5.shared.model.StudyGroup;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static java.util.Arrays.asList;
+import static java.util.Arrays.stream;
+
 /**
  * Класс управления коллекцией StudyGroup.
  * Содержит методы добавления, удаления и получения информации о коллекции.
@@ -25,7 +27,8 @@ public class CollectionManager {
      * @return список объектов StudyGroup
      */
     public List<StudyGroup> showCollection(){
-        return Collections.unmodifiableList(collection);
+        List<StudyGroup> colection1 = Collections.unmodifiableList(collection);
+        return colection1.stream().sorted(Comparator.comparing(StudyGroup::getName)).collect(Collectors.toList());
     }
     /**
      * @return размер коллекции
@@ -53,11 +56,11 @@ public class CollectionManager {
      * @param studyGroup объект StudyGroup, который необходимо добавить
      */
     public boolean add(StudyGroup studyGroup){
-        for (StudyGroup st : collection)
-            if(st.getId() == studyGroup.getId()){
-                System.out.println("Элемент с id=" + studyGroup.getId() + " уже существует");
-                return false;
-            }
+        boolean exists = collection.stream().anyMatch(st -> st.getId()==studyGroup.getId());
+        if(exists){
+            System.out.println("Элемент с id=" + studyGroup.getId() + " уже существует");
+            return false;
+        }
         collection.add(studyGroup);
         return true;
     }
@@ -67,16 +70,7 @@ public class CollectionManager {
      * @param id идентификатор элемента
      */
     public boolean remove_by_id(long id){
-        boolean f=false;
-        for(int i = 0; i<collection.size();i++){
-            if(id == collection.get(i).getId()){
-                collection.remove(i);
-
-                f=true;
-                break;
-            }
-        }
-        return f;
+            return collection.remove(collection.stream().filter(st -> st.getId()==id).findFirst().get());
     }
 
     /**
@@ -90,29 +84,25 @@ public class CollectionManager {
      * Проверка на id, чтобы продолжать с максимального значения
      */
     public void updateCurrentId() {
-        long maxId=0;
-        for(StudyGroup st: collection){
-            if (st.getId()>maxId){
-                maxId = st.getId();
-            }
+        if(!collection.isEmpty()){
+            long maxId=collection.stream().max(Comparator.comparingLong(StudyGroup::getId)).get().getId();
+            currentId=maxId+1;
         }
-        currentId=maxId+1;
     }
     /**
      * Удаляет последний элемент коллекции.
      * Если коллекция пустая, операция не выполняется.
      */
-    public boolean remove_last(){
-        boolean f= false;
-        if(!collection.isEmpty()){
-            collection.sort(null);
-            collection.remove(collection.size()-1);
-            f = true;
+    public boolean remove_last() {
+        if (collection.isEmpty()) {
+            return false;
         }
-        else System.out.println("коллекция пустая");
-        return f;
+        return collection.stream()
+                .sorted()
+                .reduce((a, b) -> b)
+                .map(last -> collection.remove(last))
+                .orElse(false);
     }
-
     /**
      * Удалить из коллекции все элементы, меньшие, чем заданный
      * @param studyGroup элемент
@@ -136,7 +126,7 @@ public class CollectionManager {
     public boolean add_if_max(StudyGroup studyGroup){
         boolean f = false;
         if (!collection.isEmpty()){
-            StudyGroup max=Collections.max(collection);
+            StudyGroup max=collection.stream().max(Comparator.naturalOrder()).get();
             if (studyGroup.compareTo(max)>0){
                 collection.add(studyGroup);
                 f=true;
@@ -156,51 +146,44 @@ public class CollectionManager {
      * Вывести количество элементов, значение поля formOfEducation которых равно заданному
      * @param arg аргументы
      */
-    public void count_by_form_of_education(String arg){
+    public String count_by_form_of_education(String arg){
+        String line;
         try {
-            int count=0;
             FormOfEducation target = FormOfEducation.valueOf(arg.toUpperCase());
-            for(StudyGroup st:collection){
-                if(st.getFormOfEducation().equals(target)){
-                    count++;
-                }
-            }
-            System.out.println("количество = " + count);
+            long count = collection.stream().filter(st->st.getFormOfEducation()==target).count();
+            line = "количество = " + count;
         } catch (IllegalArgumentException e) {
-            System.err.println("Введено не корректное значение " + e);
+            line="Введено не корректное значение " + e;
         }
+        return line;
     }
 
     /**
      * Фильтрацию коллекции по имени.
      * @param name имя
      */
-    public boolean filter_contains_name(String name){
-        boolean f = false;
-        for(StudyGroup st:collection){
-            if(name!=null && st.getName().toLowerCase().contains(name.toLowerCase())){
-                f=true;
-                System.out.println(st);
+    public String filter_contains_name(String name) {
+        StringBuilder result = new StringBuilder();
+        List<StudyGroup> studyGroups = collection.stream().filter(st -> st.getName().toLowerCase().contains(name.toLowerCase())).collect(Collectors.toList());
+        if(!studyGroups.isEmpty()){
+            for (StudyGroup studyGroup : studyGroups) {
+                result.append(studyGroup.getName());
             }
+            return result.toString();
         }
-        return f;
+        return "нет совпадений";
     }
 
     /**
      * Сортировка и вывод всех полей ShouldBeExpelled в порядке возрастания
      */
-    public void print_field_ascending_should_be_expelled(){
-        ArrayList<Long> sorted = new ArrayList<>();
-        for(StudyGroup st:collection){
-            if (st.getShouldBeExpelled()!=null){
-                sorted.add(st.getShouldBeExpelled());
-            }
+    public String print_field_ascending_should_be_expelled(){
+        StringBuilder stringBuilder = new StringBuilder();
+        List<Long> sbe = collection.stream().filter(st->st.getShouldBeExpelled()!=null).map(StudyGroup::getShouldBeExpelled).sorted().collect(Collectors.toList());
+        for(long st: sbe){
+            stringBuilder.append(st);
         }
-        sorted.sort(null);
-        for(long st: sorted){
-            System.out.println(st);
-        }
-
+        return stringBuilder.toString();
     }
     /**
      * Полностью очищает коллекцию.
