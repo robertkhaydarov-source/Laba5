@@ -1,6 +1,8 @@
 package laba5.manager;
 
-import laba5.commands.Command;
+import laba5.client.commands.Command;
+import laba5.shared.actions.Request;
+import laba5.shared.model.StudyGroup;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -19,7 +21,7 @@ public class CommandInvoker  {
         this.inputManager = inputManager;
     }
 
-    public void execute(String comand)
+    public String execute(String comand)
     {
         String[] arr;
         String[] arg;
@@ -30,12 +32,22 @@ public class CommandInvoker  {
         else {
             arr = comand.trim().split("\\s+");
             arg = Arrays.copyOfRange(arr, 1, arr.length);
+
         }
         if (comandMap.containsKey(arr[0])) {
-            comandMap.get(arr[0]).execute(arg);
+            return comandMap.get(arr[0]).execute(arg);
         }
-        else System.out.println("такой команды не существует");
+        else return "такой команды не существует";
 
+    }
+    public String execute(Request request){
+        String commandName = request.getName();
+        String arg = request.getArgs() != null ? request.getArgs().toString() : "";
+        StudyGroup studyGroup = request.getStudyGroup();
+        if (comandMap.containsKey(commandName)) {
+            return comandMap.get(commandName).execute(arg,  studyGroup);
+        }
+        else return "такой команды не существует или неверные данные";
     }
 
     /**

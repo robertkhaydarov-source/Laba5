@@ -1,10 +1,9 @@
 package laba5.manager;
 
-import laba5.model.Color;
-import laba5.model.Country;
-import laba5.model.FormOfEducation;
-import laba5.model.Semester;
-
+import laba5.shared.model.Color;
+import laba5.shared.model.Country;
+import laba5.shared.model.FormOfEducation;
+import laba5.shared.model.Semester;
 
 import java.util.ArrayList;
 import java.util.Scanner;

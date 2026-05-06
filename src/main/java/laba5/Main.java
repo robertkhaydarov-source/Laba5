@@ -1,8 +1,8 @@
 package laba5;
 
-import laba5.commands.*;
+import laba5.client.commands.*;
 import laba5.manager.*;
-import laba5.model.StudyGroup;
+import laba5.shared.model.StudyGroup;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;

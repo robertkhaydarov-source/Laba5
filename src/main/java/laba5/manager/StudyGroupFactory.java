@@ -1,6 +1,6 @@
 package laba5.manager;
 
-import laba5.model.*;
+import laba5.shared.model.*;
 
 import java.time.ZonedDateTime;
 import java.util.Arrays;

@@ -1,7 +1,7 @@
 package laba5.manager;
 
-import laba5.model.FormOfEducation;
-import laba5.model.StudyGroup;
+import laba5.shared.model.FormOfEducation;
+import laba5.shared.model.StudyGroup;
 
 import java.util.ArrayList;
 import java.util.Collections;

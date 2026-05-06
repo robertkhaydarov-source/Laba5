@@ -1,1 +1,1 @@
-packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"commands"},{"l":"manager"},{"l":"model"}];updateSearchResults();
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"laba5"},{"l":"laba5.commands"},{"l":"laba5.manager"},{"l":"laba5.model"}];updateSearchResults();
