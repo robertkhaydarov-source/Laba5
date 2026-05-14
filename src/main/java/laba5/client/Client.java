@@ -63,7 +63,6 @@ public class Client {
             os.flush();
             ByteBuffer bf = ByteBuffer.wrap(bytes.toByteArray());
             channel.send(bf, serverAddress);
-            logger.info("Server Response: {}", bytes);
             ByteBuffer reciveBuffer = ByteBuffer.allocate(65535);
             long startTime = System.currentTimeMillis();
             while (channel.receive(reciveBuffer) == null) {
@@ -74,9 +73,13 @@ public class Client {
             }
             byte[] bytes1 = reciveBuffer.array();
             reciveBuffer.clear();
-            ObjectInputStream oos1 = new ObjectInputStream(new ByteArrayInputStream(bytes1));
-            Response response = (Response) oos1.readObject();
-            System.out.println(response.getResponse());
+            if (bytes1.length>0){
+                ObjectInputStream oos1 = new ObjectInputStream(new ByteArrayInputStream(bytes1));
+                Response response = (Response) oos1.readObject();
+                collectionManager.setCurrentId(response.getCurrentId());
+                System.out.println(response.getResponse());
+            }
+
         }
     }
 }

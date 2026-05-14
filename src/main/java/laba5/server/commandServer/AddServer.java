@@ -17,10 +17,11 @@ public class AddServer implements Command {
 
     @Override
     public String execute(String args, StudyGroup studyGroup) {
-        if(collectionManager.add(studyGroup).isEmpty()){
-           return "элемент добавлен";
+        try {
+            return collectionManager.add(studyGroup);
+        } catch (Exception e) {
+            return "ошибка" + e.getMessage();
         }
-        return "ошибка добавления";
     }
 
     @Override

@@ -61,7 +61,7 @@ public class CollectionManager {
             return "Элемент с id=" + studyGroup.getId() + " уже существует";
         }
         collection.add(studyGroup);
-        return "";
+        return "Элемент добавлен";
     }
     /**
      * Удаляет элемент коллекции по его идентификатору.
@@ -77,6 +77,10 @@ public class CollectionManager {
      */
     public long getCurrentId() {
         return currentId++;
+    }
+
+    public void setCurrentId(long currentId) {
+        this.currentId = currentId;
     }
 
     /**

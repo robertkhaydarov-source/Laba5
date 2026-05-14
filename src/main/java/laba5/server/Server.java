@@ -10,49 +10,47 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 
 import java.io.*;
-import java.net.InetSocketAddress;
-import java.net.SocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.DatagramChannel;
+import java.net.*;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 public class Server {
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
-    public static void main(String[] args){
-        try(DatagramChannel channel = DatagramChannel.open()) {
+
+    public static void main(String[] args) { // datagram socket
+        try {
             InetSocketAddress inetSocketAddress = new InetSocketAddress("localhost", 7777);
-            channel.bind(inetSocketAddress);
-            logger.info("Server started on port 7777");
-            channel.configureBlocking(false);
-            ByteBuffer buffer = ByteBuffer.allocate(65535 );
+            DatagramSocket socket = new DatagramSocket(inetSocketAddress);
+            byte[] buffer = new byte[65507];
             CollectionManager collectionManager = new CollectionManager();
             StudyGroupFactory studyGroupFactory = new StudyGroupFactory(collectionManager);
-          String fileName = System.getenv("FILE_NAME");
-          if (fileName == null) {
+            String fileName = System.getenv("FILE_NAME");
+            if (fileName == null) {
                 logger.error("Environment variable FILE_NAME not set");
                 return;
             }
             FileCsvReader fileManager = new FileCsvReader(fileName);
             try {
                 List<String[]> lines = fileManager.readCSV();
-                for (String[] line:lines){
-                    try{
-                        StudyGroup studyGroup=studyGroupFactory.createFromFile(ZonedDateTime.now(), line);
-                        if(studyGroup!=null) collectionManager.add(studyGroup);
-                    }catch (IllegalArgumentException e){
+                for (String[] line : lines) {
+                    try {
+                        StudyGroup studyGroup = studyGroupFactory.createFromFile(ZonedDateTime.now(), line);
+                        if (studyGroup != null) collectionManager.add(studyGroup);
+                    } catch (IllegalArgumentException e) {
                         System.err.println("повреждены данные " + e.getMessage());
                     }
                 }
-                if (!collectionManager.showCollection().isEmpty()) System.out.println("элементы из файла добавлены в коллекцию");
+                if (!collectionManager.showCollection().isEmpty())
+                    System.out.println("элементы из файла добавлены в коллекцию");
                 collectionManager.updateCurrentId();
             } catch (FileNotFoundException e) {
                 System.err.println("файла не существует " + e.getMessage());
             } catch (IOException e) {
                 System.err.println("Ошибка ввода-вывода " + e.getMessage());
             }
-            InputManager inputManager =new InputManager(null);
+            InputManager inputManager = new InputManager(null);
             CommandInvoker invoker = new CommandInvoker(inputManager);
             invoker.register(new Help(invoker));
             invoker.register(new Info(collectionManager));
@@ -74,59 +72,64 @@ public class Server {
                 invoker.execute("save");
                 System.out.println("колекция сохранена");
             }));
-            Thread consoleThread =new Thread(()->{
+            Thread consoleThread = new Thread(() -> {
                 Scanner scanner = new Scanner(System.in);
-                while(true){
-                    String comand = scanner.nextLine();
-                    if("save".equals(comand)){
-                        invoker.execute("save");
-                        System.out.println("Сохранено!");
+                try {
+                    while (true) {
+                        String comand = scanner.nextLine();
+                        if ("save".equals(comand)) {
+                            invoker.execute("save");
+                            System.out.println("Сохранено!");
+                        } else if ("exit".equals(comand)) {
+                            System.exit(0);
+                        }
                     }
-                    else if ("exit".equals(comand)){
-                        System.exit(0);
-                    }
+                } catch (NoSuchElementException | IllegalStateException e) {
+                    logger.warn("Консольный ввод закрыт, поток завершается");
                 }
             });
             consoleThread.setDaemon(true);
             consoleThread.start();
-            while(true){
-                SocketAddress clientAddress = channel.receive(buffer);
-                if(clientAddress!=null) {
+            logger.info("Server started on port 7777");
+            while (true) {
+                DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
+                socket.receive(packet);
+                ByteArrayInputStream bits = new ByteArrayInputStream(packet.getData(), 0, packet.getLength());
+                ObjectInputStream oos = new ObjectInputStream(bits);
+                Request request = (Request) oos.readObject();
+                InetAddress clientAddress = packet.getAddress();
+                int clientPort = packet.getPort();
+                if (clientAddress != null) {
                     logger.info("New connection from {}", clientAddress);
-                    buffer.flip();
-                    byte[] bytes = buffer.array();
-                    buffer.clear();
-                    ObjectInputStream obj = new ObjectInputStream(new ByteArrayInputStream(bytes));
-                    try {
-                        Request request = (Request) obj.readObject();
-                        String result;
-                         if ("exit".equals(request.getName())) {
-                            // Отклонить exit - это только для клиента
-                            result = "Команда exit недоступна на сервере";
+                    String result;
+                    if ("exit".equals(request.getName())) {
+                        // Отклонить exit - это только для клиента
+                        result = "Команда exit недоступна на сервере";
+                    } else {
+                        if (request.getStudyGroup() != null) {
+                            result = invoker.execute(request);
                         } else {
-                            if (request.getStudyGroup() != null) {
-                                result = invoker.execute(request);
-                            } else {
-                                result = invoker.execute(request.getName() + " " + (request.getArgs() != null ? request.getArgs() : ""));
-                            }
+                            result = invoker.execute(request.getName() + " " + (request.getArgs() != null ? request.getArgs() : ""));
                         }
-                            System.out.println("Получен запрос: " + request.getName() + " studyGroup: " + request.getStudyGroup());
-                            System.out.println("Результат: " + result);
-                            ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                            ObjectOutputStream oos = new ObjectOutputStream(bos);
-                            oos.writeObject(new Response(result));
-                            oos.flush();
-                            ByteBuffer buffer1 = ByteBuffer.wrap(bos.toByteArray());
-                            channel.send(buffer1, clientAddress);
-                            logger.info("Response sent to: {}", clientAddress);
-                    } catch (ClassNotFoundException ex) {
-                        logger.error("Error processing request", ex);
                     }
+                    System.out.println("Получен запрос: " + request.getName() + " studyGroup: " + request.getStudyGroup());
+                    System.out.println("Результат: " + result);
+                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                    ObjectOutputStream oos2 = new ObjectOutputStream(bos);
+                    oos2.writeObject(new Response(result, collectionManager.getCurrentId()));
+                    oos2.flush();
+                    byte[] responseByte = bos.toByteArray();
+                    DatagramPacket sendPacket = new DatagramPacket(
+                            responseByte, responseByte.length, clientAddress, clientPort
+                    );
+                    socket.send(sendPacket);
+                    logger.info("Response sent to: {}", clientAddress);
                 }
             }
-        }catch (IOException e){
+        } catch (IOException | ClassNotFoundException e) {
             System.err.println("" + e.getMessage());
         }
 
     }
 }
+
