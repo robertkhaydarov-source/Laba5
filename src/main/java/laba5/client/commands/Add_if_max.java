@@ -57,7 +57,6 @@ public class Add_if_max implements Command {
             }
             else if (args.length == 0){
                 studyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), inputManager.consoleArgs());
-                collectionManager.add_if_max(studyGroup);
             }
             else {
                 studyGroup = null;

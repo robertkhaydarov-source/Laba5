@@ -41,7 +41,7 @@ public class Update implements Command {
                     return "неверное количество аргументов для скрипта";
                 }
                 String[] parsedArgs = fileCsvReader.parsingCSV(args[1]);
-                if (parsedArgs != null) {
+                if (parsedArgs == null) {
                     return "Ошибка аргументов";
                 }
                 studyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), parsedArgs);

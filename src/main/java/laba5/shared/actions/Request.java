@@ -9,6 +9,7 @@ public class Request implements Serializable {
     private String name;
     private Serializable args;
     private StudyGroup studyGroup;
+    private String requestId;
     public Request (String name, Serializable args, StudyGroup studyGroup){
         this.name=name;
         this.args=args;
@@ -17,6 +18,14 @@ public class Request implements Serializable {
 
     public StudyGroup getStudyGroup() {
         return studyGroup;
+    }
+
+    public String getRequestId() {
+        return requestId;
+    }
+
+    public void setRequestId(String requestId) {
+        this.requestId = requestId;
     }
 
     public Request (String name, String arg){

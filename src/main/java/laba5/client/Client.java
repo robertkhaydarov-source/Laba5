@@ -8,6 +8,7 @@ import laba5.shared.actions.Response;
 import laba5.shared.model.StudyGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -15,6 +16,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.time.ZonedDateTime;
 import java.util.Scanner;
+import java.util.UUID;
 
 
 public class Client {
@@ -37,12 +39,16 @@ public class Client {
                     StudyGroup studyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), inputManager.consoleArgs());
                     request = new Request(arg[0], null, studyGroup);
                     break;
-                case "remove_by_id", "count_by_form_of_education", "execute_script", "filter_contains_name":
-                    request = new Request(arg[0], (arg[1]!=null ? arg[1] : ""));
+                case "remove_by_id", "count_by_form_of_education", "filter_contains_name":
+                    request = new Request(arg[0], ((arg.length > 1) ? arg[1] : ""));
                     break;
                 case "update":
+                    if (arg.length < 2) {
+                        System.out.println("укажите id элемента");
+                        continue;
+                    }
                     StudyGroup studyGroup1 = studyGroupFactory.createFromConsole(ZonedDateTime.now(), inputManager.consoleArgs());
-                    request = new Request(arg[0], arg[1],  studyGroup1);
+                    request = new Request(arg[0], (arg.length > 1 ? arg[1] : ""),  studyGroup1);
                     break;
                 case "save":
                     System.out.println("Команда save доступна только на сервере");
@@ -52,10 +58,26 @@ public class Client {
                     System.exit(0);
                     request=new Request(commandWithArg);
                     break;
+                case "execute_script":
+                    if (arg.length < 2) {
+                        System.out.println("укажите имя файла");
+                        continue;
+                    }
+                    File scriptFile = new File(arg[1]);
+                    if (!scriptFile.exists()) {
+                        System.out.println("файл не найден");
+                        continue;
+                    }
+
+
                 default:
                     request=new Request(commandWithArg);
                     break;
             }
+            String requestId = UUID.randomUUID().toString().substring(0, 8);
+            request.setRequestId(requestId);
+            MDC.put("requestId", requestId);
+            logger.info("Sending command: {}", request.getName());
             logger.debug("Request details: {}", request);
             ByteArrayOutputStream bytes = new ByteArrayOutputStream();
             ObjectOutputStream os = new ObjectOutputStream(bytes);
@@ -78,6 +100,8 @@ public class Client {
                 Response response = (Response) oos1.readObject();
                 collectionManager.setCurrentId(response.getCurrentId());
                 System.out.println(response.getResponse());
+                logger.info("Response received from server");
+                MDC.clear();
             }
 
         }

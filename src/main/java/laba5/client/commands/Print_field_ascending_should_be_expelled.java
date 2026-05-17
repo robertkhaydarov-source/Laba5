@@ -25,8 +25,7 @@ public class Print_field_ascending_should_be_expelled implements Command {
     @Override
     public String execute(String... args) {
         if(!collectionManager.showCollection().isEmpty()){
-            collectionManager.print_field_ascending_should_be_expelled();
-            return "имена отсортированы";
+            return "имена отсортированы" + '\n' + collectionManager.print_field_ascending_should_be_expelled();
         }
         else return "коллекция пуста";
     }

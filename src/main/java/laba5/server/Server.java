@@ -8,17 +8,15 @@ import laba5.shared.actions.Response;
 import laba5.shared.model.StudyGroup;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.MDC;
 
 import java.io.*;
 import java.net.*;
 import java.time.ZonedDateTime;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
+import java.util.*;
 
 public class Server {
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
-
     public static void main(String[] args) { // datagram socket
         try {
             InetSocketAddress inetSocketAddress = new InetSocketAddress("localhost", 7777);
@@ -39,16 +37,16 @@ public class Server {
                         StudyGroup studyGroup = studyGroupFactory.createFromFile(ZonedDateTime.now(), line);
                         if (studyGroup != null) collectionManager.add(studyGroup);
                     } catch (IllegalArgumentException e) {
-                        System.err.println("повреждены данные " + e.getMessage());
+                        logger.error("повреждены данные " + e.getMessage());
                     }
                 }
                 if (!collectionManager.showCollection().isEmpty())
-                    System.out.println("элементы из файла добавлены в коллекцию");
+                    logger.error("элементы из файла добавлены в коллекцию");
                 collectionManager.updateCurrentId();
             } catch (FileNotFoundException e) {
-                System.err.println("файла не существует " + e.getMessage());
+                logger.error("файла не существует " + e.getMessage());
             } catch (IOException e) {
-                System.err.println("Ошибка ввода-вывода " + e.getMessage());
+                logger.error("Ошибка ввода-вывода " + e.getMessage());
             }
             InputManager inputManager = new InputManager(null);
             CommandInvoker invoker = new CommandInvoker(inputManager);
@@ -91,14 +89,40 @@ public class Server {
             consoleThread.setDaemon(true);
             consoleThread.start();
             logger.info("Server started on port 7777");
+            Map<String, Response> processedRequests = new LinkedHashMap<>() {
+                protected boolean removeEldestEntry(Map.Entry<String, Response> eldest) {
+                    return size() > 100; // хранить максимум 100 последних
+                }
+            };
             while (true) {
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                 socket.receive(packet);
                 ByteArrayInputStream bits = new ByteArrayInputStream(packet.getData(), 0, packet.getLength());
                 ObjectInputStream oos = new ObjectInputStream(bits);
                 Request request = (Request) oos.readObject();
+                String requestId = request.getRequestId() != null
+                        ? request.getRequestId()
+                        : UUID.randomUUID().toString().substring(0, 8);
+                MDC.put("requestId", requestId);
                 InetAddress clientAddress = packet.getAddress();
                 int clientPort = packet.getPort();
+                if (processedRequests.containsKey(requestId)) {
+                    logger.warn("Duplicate request {}, returning cached result", requestId);
+                    Response cachedResponse = processedRequests.get(requestId);
+                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                    ObjectOutputStream oos2 = new ObjectOutputStream(bos);
+                    oos2.writeObject(cachedResponse);
+                    oos2.flush();
+                    byte[] responseByte = bos.toByteArray();
+                    DatagramPacket sendPacket = new DatagramPacket(
+                            responseByte, responseByte.length, clientAddress, clientPort
+                    );
+                    socket.send(sendPacket);
+                    logger.info("Cached response sent to: {}", clientAddress);
+                    MDC.clear();
+                    continue;
+                }
+
                 if (clientAddress != null) {
                     logger.info("New connection from {}", clientAddress);
                     String result;
@@ -112,11 +136,14 @@ public class Server {
                             result = invoker.execute(request.getName() + " " + (request.getArgs() != null ? request.getArgs() : ""));
                         }
                     }
-                    System.out.println("Получен запрос: " + request.getName() + " studyGroup: " + request.getStudyGroup());
-                    System.out.println("Результат: " + result);
+                    logger.info("Executing command: {} args: {}", request.getName(), request.getArgs());
+                    logger.info("Получен запрос: " + request.getName() + " studyGroup: " + request.getStudyGroup());
+                    logger.info("Результат: " + result);
                     ByteArrayOutputStream bos = new ByteArrayOutputStream();
                     ObjectOutputStream oos2 = new ObjectOutputStream(bos);
-                    oos2.writeObject(new Response(result, collectionManager.getCurrentId()));
+                    Response response = new Response(result, collectionManager.getCurrentId()), requestId);
+                    oos2.writeObject(response);
+                    processedRequests.put(requestId, response);
                     oos2.flush();
                     byte[] responseByte = bos.toByteArray();
                     DatagramPacket sendPacket = new DatagramPacket(
@@ -127,7 +154,10 @@ public class Server {
                 }
             }
         } catch (IOException | ClassNotFoundException e) {
-            System.err.println("" + e.getMessage());
+            logger.error("Critical server error", e);
+        }
+        finally {
+            MDC.clear();
         }
 
     }

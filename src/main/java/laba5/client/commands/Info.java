@@ -27,14 +27,8 @@ public class Info implements Command {
      * @param args аргументы команды
      */
     public String execute(String... args) {
-        String line = collectionManager.getType() + '\n' + collectionManager.getInitilizationDate() + '\n' + collectionManager.getSize();
-        if (collectionManager.showCollection().isEmpty()){
-            return "коллекция пуста";
-        }
-        return line;
-
+        return collectionManager.getType() + '\n' + collectionManager.getInitilizationDate() + '\n' + collectionManager.getSize();
     }
-
     @Override
     public String execute(String args, StudyGroup studyGroup) {
         return "";

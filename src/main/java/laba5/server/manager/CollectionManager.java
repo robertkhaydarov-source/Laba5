@@ -69,7 +69,13 @@ public class CollectionManager {
      * @param id идентификатор элемента
      */
     public boolean remove_by_id(long id){
-            return collection.remove(collection.stream().filter(st -> st.getId()==id).findFirst().get());
+        Optional<StudyGroup> found = collection.stream()
+                .filter(sg -> sg.getId() == id)
+                .findFirst();
+
+        if (found.isEmpty()) return false;
+        collection.remove(found.get());
+        return true;
     }
 
     /**

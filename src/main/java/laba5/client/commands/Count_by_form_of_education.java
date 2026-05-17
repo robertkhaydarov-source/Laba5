@@ -29,12 +29,11 @@ public class Count_by_form_of_education implements Command {
      */
     public String execute(String... args) {
         if (args.length == 1) {
-            collectionManager.count_by_form_of_education(args[0]);
+            return collectionManager.count_by_form_of_education(args[0]);
         }
         else {
             return "введите значение формы обучения";
         }
-        return "";
     }
 
     @Override
