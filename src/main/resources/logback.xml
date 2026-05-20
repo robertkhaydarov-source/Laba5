@@ -1,13 +1,35 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+
+    <!-- Читаем уровень из системного свойства, по умолчанию INFO -->
+    <property name="LOG_LEVEL" value="${log.level:-INFO}"/>
+    <property name="LOG_FILE" value="${log.file:-logs/app.log}"/>
+
+    <!-- Паттерн: время | уровень | класс | requestId | сообщение -->
+    <property name="PATTERN" value="%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} [reqId=%X{requestId}] - %msg%n"/>
+
+    <!-- 1. Консоль -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>${PATTERN}</pattern>
         </encoder>
     </appender>
 
+    <!-- 2. Файл с ротацией -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_FILE}</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/app.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>7</maxHistory> <!-- хранить 7 дней -->
+        </rollingPolicy>
+        <encoder>
+            <pattern>${PATTERN}</pattern>
+        </encoder>
+    </appender>
 
-    <root level="info">
-        <appender-ref ref="STDOUT" />
+    <!-- Корневой логгер — оба appender-а активны -->
+    <root level="${LOG_LEVEL}">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
     </root>
+
 </configuration>

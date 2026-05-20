@@ -55,14 +55,16 @@ public class CollectionManager {
      *
      * @param studyGroup объект StudyGroup, который необходимо добавить
      */
-    public String add(StudyGroup studyGroup){
-        boolean exists = collection.stream().anyMatch(st -> st.getId()==studyGroup.getId());
-        if(exists){
-            return "Элемент с id=" + studyGroup.getId() + " уже существует";
+        public String add(StudyGroup studyGroup){
+            boolean exists = collection.stream().anyMatch(st -> st.getId()==studyGroup.getId());
+            if(exists){
+                return "Элемент с id=" + studyGroup.getId() + " уже существует";
+            }
+            collection.add(studyGroup);
+            return "Элемент добавлен";
         }
-        collection.add(studyGroup);
-        return "Элемент добавлен";
-    }
+
+
     /**
      * Удаляет элемент коллекции по его идентификатору.
      *

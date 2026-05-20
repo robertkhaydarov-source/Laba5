@@ -127,6 +127,6 @@ public class StudyGroup implements Comparable<StudyGroup>, Serializable {
      */
     @Override
     public int compareTo(StudyGroup other) {
-        return Long.compare(this.studentsCount, other.studentsCount);
+        return (this.name.compareTo(other.name));
     }
 }

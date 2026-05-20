@@ -1,6 +1,7 @@
 package laba5.client;
 
 import laba5.server.manager.CollectionManager;
+import laba5.server.manager.FileCsvReader;
 import laba5.server.manager.InputManager;
 import laba5.server.manager.StudyGroupFactory;
 import laba5.shared.actions.Request;
@@ -30,13 +31,52 @@ public class Client {
         InputManager inputManager = new InputManager(scanner);
         CollectionManager collectionManager = new CollectionManager();
         StudyGroupFactory studyGroupFactory = new StudyGroupFactory(collectionManager);
-        while (scanner.hasNext()) {
-            String commandWithArg = scanner.nextLine();
+        Scanner scanner1 = scanner;
+        FileCsvReader fileCsvReader = null;
+        while (true) {
+            if (!inputManager.getScanner().hasNextLine()) {
+                if (inputManager.isInScript()) {
+                    inputManager.getScanner().close();
+                    inputManager.setScanner(scanner1);
+                    inputManager.setInScript(false);
+                    continue;
+                } else {
+                    break;
+                }
+            }
+            String commandWithArg = inputManager.getScanner().nextLine();
+            if(commandWithArg.isEmpty()){
+                continue;
+            }
+
             String[] arg = commandWithArg.trim().split(" ", 2);
             Request request;
             switch (arg[0]) {
-                case "add", "add_if_max", "remove_lower":
-                    StudyGroup studyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), inputManager.consoleArgs());
+                case "execute_script":
+                    if (arg.length < 2) {
+                        logger.info("укажите имя файла");
+                        continue;
+                    }
+                    File scriptFile = new File(arg[1]);
+                    fileCsvReader = new FileCsvReader(arg[1]);
+                    if (!scriptFile.exists()) {
+                        logger.info("файл не найден");
+                        continue;
+                    }
+                    scanner1 = inputManager.getScanner();
+                    Scanner scriptScanner = new Scanner(scriptFile);
+                    inputManager.setScanner(scriptScanner);
+                    inputManager.setInScript(true);
+                    continue;
+                    case "add", "add_if_max", "remove_lower":
+                        StudyGroup studyGroup;
+                    if (inputManager.isInScript() && arg.length >1) {
+                        String[] parsed = fileCsvReader.parsingCSV(arg[1]);
+                        studyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), parsed);
+                    }
+                    else{
+                        studyGroup = studyGroupFactory.createFromConsole(ZonedDateTime.now(), inputManager.consoleArgs());
+                    }
                     request = new Request(arg[0], null, studyGroup);
                     break;
                 case "remove_by_id", "count_by_form_of_education", "filter_contains_name":
@@ -44,34 +84,22 @@ public class Client {
                     break;
                 case "update":
                     if (arg.length < 2) {
-                        System.out.println("укажите id элемента");
+                        logger.info("укажите id элемента");
                         continue;
                     }
                     StudyGroup studyGroup1 = studyGroupFactory.createFromConsole(ZonedDateTime.now(), inputManager.consoleArgs());
-                    request = new Request(arg[0], (arg.length > 1 ? arg[1] : ""),  studyGroup1);
+                    request = new Request(arg[0], (arg.length > 1 ? arg[1] : ""), studyGroup1);
                     break;
                 case "save":
-                    System.out.println("Команда save доступна только на сервере");
+                    logger.info("Команда save доступна только на сервере");
                     logger.warn("Client tried to execute save command");
                     continue;
                 case "exit":
                     System.exit(0);
-                    request=new Request(commandWithArg);
+                    request = new Request(commandWithArg);
                     break;
-                case "execute_script":
-                    if (arg.length < 2) {
-                        System.out.println("укажите имя файла");
-                        continue;
-                    }
-                    File scriptFile = new File(arg[1]);
-                    if (!scriptFile.exists()) {
-                        System.out.println("файл не найден");
-                        continue;
-                    }
-
-
                 default:
-                    request=new Request(commandWithArg);
+                    request = new Request(commandWithArg);
                     break;
             }
             String requestId = UUID.randomUUID().toString().substring(0, 8);
@@ -84,26 +112,42 @@ public class Client {
             os.writeObject(request);
             os.flush();
             ByteBuffer bf = ByteBuffer.wrap(bytes.toByteArray());
-            channel.send(bf, serverAddress);
-            ByteBuffer reciveBuffer = ByteBuffer.allocate(65535);
-            long startTime = System.currentTimeMillis();
-            while (channel.receive(reciveBuffer) == null) {
-                if (System.currentTimeMillis() - startTime > 5000) {
-                    System.out.println("сервер недоступен");
-                    break;
+            int maxAttempts = 3;
+            int attempt = 0;
+            Response response = null;
+            while (attempt < maxAttempts && response == null) {
+                attempt++;
+                logger.info("Sending command: {} attempt: {}/{}", request.getName(), attempt, maxAttempts);
+                channel.send(bf, serverAddress);
+                ByteBuffer reciveBuffer = ByteBuffer.allocate(65535);
+                long startTime = System.currentTimeMillis();
+                while (channel.receive(reciveBuffer) == null) {
+                    if (System.currentTimeMillis() - startTime > 5000) {
+                        logger.warn("Timeout on attempt {}/{}", attempt, maxAttempts);
+                        break;
+                    }
+                }
+                if (reciveBuffer.position() > 0) {
+                    byte[] bytes1 = reciveBuffer.array();
+                    reciveBuffer.clear();
+                    ObjectInputStream oos1 = new ObjectInputStream(new ByteArrayInputStream(bytes1));
+                    response = (Response) oos1.readObject();
+                    if (!requestId.equals(response.getRequestID())) {
+                        logger.warn("Got response for wrong requestId, ignoring");
+                        response = null;
+                    }
                 }
             }
-            byte[] bytes1 = reciveBuffer.array();
-            reciveBuffer.clear();
-            if (bytes1.length>0){
-                ObjectInputStream oos1 = new ObjectInputStream(new ByteArrayInputStream(bytes1));
-                Response response = (Response) oos1.readObject();
+            if (response == null) {
+                logger.error("Server unavailable after {} attempts", maxAttempts);
+                logger.info("сервер недоступен");
+            } else {
                 collectionManager.setCurrentId(response.getCurrentId());
-                System.out.println(response.getResponse());
+                logger.info(response.getResponse());
                 logger.info("Response received from server");
                 MDC.clear();
             }
-
         }
+
     }
 }

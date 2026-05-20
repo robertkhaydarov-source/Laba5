@@ -1,2 +1,4 @@
-add  "1","1","1","4","1","DISTANCE_EDUCATION","THIRD","1","1","GREEN","GREEN","RUSSIA"
-
+info
+add ("1","1","1","4","1","DISTANCE_EDUCATION","THIRD","1","1","GREEN","GREEN","RUSSIA")
+show
+save

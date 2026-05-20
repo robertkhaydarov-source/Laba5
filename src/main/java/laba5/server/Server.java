@@ -17,6 +17,7 @@ import java.util.*;
 
 public class Server {
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
+
     public static void main(String[] args) { // datagram socket
         try {
             InetSocketAddress inetSocketAddress = new InetSocketAddress("localhost", 7777);
@@ -37,16 +38,16 @@ public class Server {
                         StudyGroup studyGroup = studyGroupFactory.createFromFile(ZonedDateTime.now(), line);
                         if (studyGroup != null) collectionManager.add(studyGroup);
                     } catch (IllegalArgumentException e) {
-                        logger.error("повреждены данные " + e.getMessage());
+                        logger.error("повреждены данные {}", e.getMessage());
                     }
                 }
                 if (!collectionManager.showCollection().isEmpty())
-                    logger.error("элементы из файла добавлены в коллекцию");
+                    logger.info("элементы из файла добавлены в коллекцию");
                 collectionManager.updateCurrentId();
             } catch (FileNotFoundException e) {
-                logger.error("файла не существует " + e.getMessage());
+                logger.error("файла не существует {}", e.getMessage());
             } catch (IOException e) {
-                logger.error("Ошибка ввода-вывода " + e.getMessage());
+                logger.error("Ошибка ввода-вывода {}", e.getMessage());
             }
             InputManager inputManager = new InputManager(null);
             CommandInvoker invoker = new CommandInvoker(inputManager);
@@ -91,9 +92,10 @@ public class Server {
             logger.info("Server started on port 7777");
             Map<String, Response> processedRequests = new LinkedHashMap<>() {
                 protected boolean removeEldestEntry(Map.Entry<String, Response> eldest) {
-                    return size() > 100; // хранить максимум 100 последних
+                    return size() > 100;
                 }
             };
+
             while (true) {
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                 socket.receive(packet);
@@ -107,15 +109,15 @@ public class Server {
                 InetAddress clientAddress = packet.getAddress();
                 int clientPort = packet.getPort();
                 if (processedRequests.containsKey(requestId)) {
-                    logger.warn("Duplicate request {}, returning cached result", requestId);
-                    Response cachedResponse = processedRequests.get(requestId);
-                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                    ObjectOutputStream oos2 = new ObjectOutputStream(bos);
-                    oos2.writeObject(cachedResponse);
-                    oos2.flush();
-                    byte[] responseByte = bos.toByteArray();
+                    logger.warn("Duplicate request ID: {}", requestId);
+                    Response cashedResponse = processedRequests.get(requestId);
+                    ByteArrayOutputStream bits1 = new ByteArrayOutputStream();
+                    ObjectOutputStream oos1 = new ObjectOutputStream(bits1);
+                    oos1.writeObject(cashedResponse);
+                    oos1.flush();
+                    byte[] responseByte1 = bits1.toByteArray();
                     DatagramPacket sendPacket = new DatagramPacket(
-                            responseByte, responseByte.length, clientAddress, clientPort
+                            responseByte1, responseByte1.length, clientAddress, clientPort
                     );
                     socket.send(sendPacket);
                     logger.info("Cached response sent to: {}", clientAddress);
@@ -136,14 +138,13 @@ public class Server {
                             result = invoker.execute(request.getName() + " " + (request.getArgs() != null ? request.getArgs() : ""));
                         }
                     }
-                    logger.info("Executing command: {} args: {}", request.getName(), request.getArgs());
-                    logger.info("Получен запрос: " + request.getName() + " studyGroup: " + request.getStudyGroup());
+                    logger.info("Received command: {} studyGroup: {}", request.getName(), request.getStudyGroup());
                     logger.info("Результат: " + result);
                     ByteArrayOutputStream bos = new ByteArrayOutputStream();
                     ObjectOutputStream oos2 = new ObjectOutputStream(bos);
-                    Response response = new Response(result, collectionManager.getCurrentId()), requestId);
-                    oos2.writeObject(response);
+                    Response response = new Response(result, collectionManager.getCurrentId(), requestId);
                     processedRequests.put(requestId, response);
+                    oos2.writeObject(response);
                     oos2.flush();
                     byte[] responseByte = bos.toByteArray();
                     DatagramPacket sendPacket = new DatagramPacket(
@@ -154,9 +155,8 @@ public class Server {
                 }
             }
         } catch (IOException | ClassNotFoundException e) {
-            logger.error("Critical server error", e);
-        }
-        finally {
+            logger.error(e.getMessage());
+        } finally {
             MDC.clear();
         }
 

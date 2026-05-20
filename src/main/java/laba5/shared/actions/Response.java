@@ -6,7 +6,7 @@ public class Response implements Serializable {
     private final String response;
     private long currentId;
     private String requestID;
-    public Response(String response, long currentId) {
+    public Response(String response, long currentId, String requestID) {
         this.response = response;
         this.currentId = currentId;
         this.requestID = requestID;
