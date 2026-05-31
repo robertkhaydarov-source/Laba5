@@ -12,6 +12,7 @@ import org.slf4j.MDC;
 
 import java.io.*;
 import java.net.*;
+import java.sql.DriverManager;
 import java.time.ZonedDateTime;
 import java.util.*;
 
@@ -25,29 +26,16 @@ public class Server {
             byte[] buffer = new byte[65507];
             CollectionManager collectionManager = new CollectionManager();
             StudyGroupFactory studyGroupFactory = new StudyGroupFactory(collectionManager);
-            String fileName = System.getenv("FILE_NAME");
-            if (fileName == null) {
-                logger.error("Environment variable FILE_NAME not set");
-                return;
+            DatabaseHandler databaseHandler = new DatabaseHandler("jdbc:postgresql://localhost:5432/postgres",
+                    "postgres",
+                    "postgres");
+            UserDao userDao = new UserDao(databaseHandler);
+            if(databaseHandler.connect()!=null){
+                logger.info("Подключение к БД успешно!");
             }
-            FileCsvReader fileManager = new FileCsvReader(fileName);
-            try {
-                List<String[]> lines = fileManager.readCSV();
-                for (String[] line : lines) {
-                    try {
-                        StudyGroup studyGroup = studyGroupFactory.createFromFile(ZonedDateTime.now(), line);
-                        if (studyGroup != null) collectionManager.add(studyGroup);
-                    } catch (IllegalArgumentException e) {
-                        logger.error("повреждены данные {}", e.getMessage());
-                    }
-                }
-                if (!collectionManager.showCollection().isEmpty())
-                    logger.info("элементы из файла добавлены в коллекцию");
-                collectionManager.updateCurrentId();
-            } catch (FileNotFoundException e) {
-                logger.error("файла не существует {}", e.getMessage());
-            } catch (IOException e) {
-                logger.error("Ошибка ввода-вывода {}", e.getMessage());
+            else {
+                logger.info("Подключение к БД не удалось");
+                System.exit(-1);
             }
             InputManager inputManager = new InputManager(null);
             CommandInvoker invoker = new CommandInvoker(inputManager);
@@ -58,7 +46,6 @@ public class Server {
             invoker.register(new Remove_by_id(collectionManager));
             invoker.register(new AddServer(collectionManager));
             invoker.register(new UpdateServer(collectionManager));
-            invoker.register(new Save(collectionManager, fileName));
             invoker.register(new Exit());
             invoker.register(new Remove_last(collectionManager));
             invoker.register(new AddIfMaxServer(collectionManager));
@@ -67,19 +54,12 @@ public class Server {
             invoker.register(new Filter_contains_name(collectionManager));
             invoker.register(new Print_field_ascending_should_be_expelled(collectionManager));
             invoker.register(new Execute_script(invoker, inputManager));
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-                invoker.execute("save");
-                System.out.println("колекция сохранена");
-            }));
             Thread consoleThread = new Thread(() -> {
                 Scanner scanner = new Scanner(System.in);
                 try {
                     while (true) {
                         String comand = scanner.nextLine();
-                        if ("save".equals(comand)) {
-                            invoker.execute("save");
-                            System.out.println("Сохранено!");
-                        } else if ("exit".equals(comand)) {
+                        if ("exit".equals(comand)) {
                             System.exit(0);
                         }
                     }
@@ -95,7 +75,17 @@ public class Server {
                     return size() > 100;
                 }
             };
-
+            CollectionDao collectionDao = new CollectionDao(databaseHandler);
+            List<StudyGroup> studyGroups = collectionDao.loadCollection();
+            if(studyGroups!=null){
+                for (StudyGroup studyGroup : studyGroups) {
+                    collectionManager.add(studyGroup);
+                }
+                logger.info("Элементы из базы данных успешно загружены в коллекцию памяти (всего: {})", studyGroups.size());
+                collectionManager.updateCurrentId();
+            }else {
+                logger.error("Не удалось загрузить коллекцию из базы данных!");
+            }
             while (true) {
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                 socket.receive(packet);
@@ -128,14 +118,25 @@ public class Server {
                 if (clientAddress != null) {
                     logger.info("New connection from {}", clientAddress);
                     String result;
-                    if ("exit".equals(request.getName())) {
-                        // Отклонить exit - это только для клиента
-                        result = "Команда exit недоступна на сервере";
+                    if ("register".equals(request.getName())) {
+                        if (userDao.register(request.getUserName(), request.getPassword())) {
+                            result = "Регистрация успешна";
+                        } else result = "Логин уже занят";
                     } else {
-                        if (request.getStudyGroup() != null) {
-                            result = invoker.execute(request);
+                        boolean isAuthenticate = userDao.authenticate(request.getUserName(), request.getPassword());
+                        if (!isAuthenticate) {
+                            result = "Ошибка: неверный логин или пароль! Выполнение команды запрещено.";
                         } else {
-                            result = invoker.execute(request.getName() + " " + (request.getArgs() != null ? request.getArgs() : ""));
+                            if ("exit".equals(request.getName())) {
+                                // Отклонить exit - это только для клиента
+                                result = "Команда exit недоступна на сервере";
+                            } else {
+                                if (request.getStudyGroup() != null) {
+                                    result = invoker.execute(request);
+                                } else {
+                                    result = invoker.execute(request.getName() + " " + (request.getArgs() != null ? request.getArgs() : ""));
+                                }
+                            }
                         }
                     }
                     logger.info("Received command: {} studyGroup: {}", request.getName(), request.getStudyGroup());

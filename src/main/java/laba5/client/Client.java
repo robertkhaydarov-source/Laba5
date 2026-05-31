@@ -104,6 +104,10 @@ public class Client {
             }
             String requestId = UUID.randomUUID().toString().substring(0, 8);
             request.setRequestId(requestId);
+            String currentLogin = scanner1.nextLine();
+            String currentPassword = scanner1.nextLine();
+            request.setUserName(currentLogin);
+            request.setPassword(currentPassword);
             MDC.put("requestId", requestId);
             logger.info("Sending command: {}", request.getName());
             logger.debug("Request details: {}", request);
@@ -118,6 +122,7 @@ public class Client {
             while (attempt < maxAttempts && response == null) {
                 attempt++;
                 logger.info("Sending command: {} attempt: {}/{}", request.getName(), attempt, maxAttempts);
+                bf.rewind();
                 channel.send(bf, serverAddress);
                 ByteBuffer reciveBuffer = ByteBuffer.allocate(65535);
                 long startTime = System.currentTimeMillis();

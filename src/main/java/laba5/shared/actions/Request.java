@@ -10,10 +10,13 @@ public class Request implements Serializable {
     private Serializable args;
     private StudyGroup studyGroup;
     private String requestId;
-    public Request (String name, Serializable args, StudyGroup studyGroup){
+    private String userName;
+    private String password;
+    public Request (String name, Serializable args, StudyGroup studyGroup) {
         this.name=name;
         this.args=args;
         this.studyGroup =studyGroup;
+
     }
 
     public StudyGroup getStudyGroup() {
@@ -49,8 +52,24 @@ public class Request implements Serializable {
         return name.isEmpty()  && args == null;
     }
 
+    public String getPassword() {
+        return password;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
     @Override
     public String toString() {
-        return "Request[" + name + ", "  + args + "]";
+        return "Request[" + name + ", "  + args + ", " + userName + "]";
     }
 }
