@@ -4,6 +4,7 @@ import laba5.server.manager.CollectionManager;
 import laba5.server.manager.FileCsvReader;
 import laba5.server.manager.InputManager;
 import laba5.server.manager.StudyGroupFactory;
+import laba5.shared.actions.PasswordHasher;
 import laba5.shared.actions.Request;
 import laba5.shared.actions.Response;
 import laba5.shared.model.StudyGroup;
@@ -31,8 +32,15 @@ public class Client {
         InputManager inputManager = new InputManager(scanner);
         CollectionManager collectionManager = new CollectionManager();
         StudyGroupFactory studyGroupFactory = new StudyGroupFactory(collectionManager);
+        PasswordHasher passwordHasher = new PasswordHasher();
         Scanner scanner1 = scanner;
-        FileCsvReader fileCsvReader = null;
+        System.out.println("--- Авторизация ---");
+        System.out.print("Введите логин: ");
+        String currentLogin = scanner.nextLine();
+        System.out.print("Введите пароль: ");
+        String rawPassword = scanner.nextLine();
+        String currentPasswordHash = passwordHasher.hashing(rawPassword);
+        FileCsvReader fileCsvReader=null;
         while (true) {
             if (!inputManager.getScanner().hasNextLine()) {
                 if (inputManager.isInScript()) {
@@ -104,10 +112,8 @@ public class Client {
             }
             String requestId = UUID.randomUUID().toString().substring(0, 8);
             request.setRequestId(requestId);
-            String currentLogin = scanner1.nextLine();
-            String currentPassword = scanner1.nextLine();
             request.setUserName(currentLogin);
-            request.setPassword(currentPassword);
+            request.setPassword(currentPasswordHash);
             MDC.put("requestId", requestId);
             logger.info("Sending command: {}", request.getName());
             logger.debug("Request details: {}", request);

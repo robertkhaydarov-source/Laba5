@@ -2,70 +2,81 @@ package laba5.client.commands;
 
 import laba5.server.manager.CommandInvoker;
 import laba5.server.manager.InputManager;
+import laba5.shared.actions.Request;
 import laba5.shared.model.StudyGroup;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
+
 /**
- * Класс Execute_script считать и исполнить скрипт из указанного файла..
+ * Класс Execute_script считать и исполнить скрипт из указанного файла.
  *
  * @author Khaydarov Robert P3118
  * @version 1.0
  */
 public class Execute_script implements Command {
 
-    private final String name="execute_script";
+    private final String name = "execute_script";
     private final CommandInvoker commandInvoker;
     private final InputManager inputManager;
-    /**
-     * Конструктор команды Add.
-     * @param commandInvoker менеджер управления командами
-     * @param inputManager менеджер ввода
-     */
+    private final Set<String> execute = new HashSet<>();
+
     public Execute_script(CommandInvoker commandInvoker, InputManager inputManager) {
         this.commandInvoker = commandInvoker;
         this.inputManager = inputManager;
     }
 
-    final Set<String> execute = new HashSet<>();
+    // Основной метод, который будет вызываться сервером
+    public String execute(Request request) {
+        if (request.getArgs() == null || request.getArgs().toString().isEmpty()) {
+            return "Не указано имя файла скрипта";
+        }
 
-    /**
-     * Метод execute проверяет на рекурсивность,
-     * переключает сканер для InputManager если встречает команды типа Add
-     * в остальном связан с CommandInvoker и выполняет все остальные команды
-     * @param args
-     */
-    public String execute(String... args) {
-        if (args.length == 1) {
-            File fileScript = new File(args[0]);
-            if (execute.contains(args[0])) {
-                return "Рекурсивный запуск";
-            } else {
-                execute.add(args[0]);
-                Scanner scanner0 = inputManager.getScanner();
-                if (!fileScript.exists()) {
-                    return "Файл не найден: " + args[0];
-                }
-                try (Scanner scanner1 = new Scanner(fileScript)) {
-                    inputManager.setScanner(scanner1);
-                    inputManager.setInScript(true);
-                    while (scanner1.hasNextLine()) {
-                        commandInvoker.execute(scanner1.nextLine());
-                    }
+        String fileName = request.getArgs().toString().trim();
+        File fileScript = new File(fileName);
 
-                } catch (FileNotFoundException e) {
-                    return "Ошибка при чтении" + e.getMessage();
-                } finally {
-                    inputManager.setInScript(false);
-                    inputManager.setScanner(scanner0);
-                    execute.remove(args[0]);
-                }
-                return "скрипт " + args[0] + " выполнен";
+        if (execute.contains(fileName)) {
+            return "Обнаружен рекурсивный запуск скрипта: " + fileName;
+        }
 
+        execute.add(fileName);
+        Scanner scanner0 = inputManager.getScanner();
+
+        if (!fileScript.exists()) {
+            execute.remove(fileName);
+            return "Файл не найден: " + fileName;
+        }
+
+        StringBuilder scriptResult = new StringBuilder("Выполнение скрипта " + fileName + ":\n");
+
+        try (Scanner scanner1 = new Scanner(fileScript)) {
+            inputManager.setScanner(scanner1);
+            inputManager.setInScript(true);
+
+            while (scanner1.hasNextLine()) {
+                String line = scanner1.nextLine().trim();
+                if (line.isEmpty()) continue;
+
+                // Вызываем твой метод-обертку, передавая строку команды, логин и хэш пароля
+                String cmdResult = commandInvoker.execute(line, request.getUserName(), request.getPassword());
+                scriptResult.append("> ").append(line).append(": ").append(cmdResult).append("\n");
             }
 
-        } else return "не указано имя файла";
+        } catch (FileNotFoundException e) {
+            return "Ошибка при чтении файла скрипта: " + e.getMessage();
+        } finally {
+            inputManager.setInScript(false);
+            inputManager.setScanner(scanner0);
+            execute.remove(fileName);
+        }
+
+        return scriptResult.toString();
+    }
+
+    @Override
+    public String execute(String... args) {
+        return "Ошибка: на сервере должен вызываться метод с Request";
     }
 
     @Override
@@ -80,6 +91,6 @@ public class Execute_script implements Command {
 
     @Override
     public String getInfo() {
-        return "считать и исполнить скрипт из указанного файла. В скрипте содержатся команды в таком же виде, в котором их вводит пользователь в интерактивном режиме.";
+        return "считать и исполнить скрипт из указанного файла.";
     }
 }

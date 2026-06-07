@@ -21,24 +21,16 @@ public class CommandInvoker  {
         this.inputManager = inputManager;
     }
 
-    public String execute(String comand)
-    {
-        String[] arr;
-        String[] arg;
-        if(inputManager.isInScript()){
-            arr = comand.trim().split(" ", 2);
-            arg = arr.length>1 ? new String[]{arr[1]}:new String[0];
-        }
-        else {
-            arr = comand.trim().split("\\s+");
-            arg = Arrays.copyOfRange(arr, 1, arr.length);
 
-        }
-        if (comandMap.containsKey(arr[0])) {
-            return comandMap.get(arr[0]).execute(arg);
-        }
-        else return "такой команды не существует";
+    public String execute(String commandWithArgs, String currentUsername, String passwordHash) {
+        String[] parts = commandWithArgs.trim().split(" ", 2);
+        String name = parts[0];
+        String args = (parts.length > 1) ? parts[1] : "";
 
+        Request artificialRequest = new Request(name, args);
+        artificialRequest.setUserName(currentUsername);
+        artificialRequest.setPassword(passwordHash);
+        return this.execute(artificialRequest);
     }
     public String execute(Request request){
         String commandName = request.getName();

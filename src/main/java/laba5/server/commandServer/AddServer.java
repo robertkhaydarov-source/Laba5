@@ -1,13 +1,26 @@
 package laba5.server.commandServer;
 
 import laba5.client.commands.Command;
+import laba5.server.manager.CollectionDao;
 import laba5.server.manager.CollectionManager;
+import laba5.shared.actions.Request;
 import laba5.shared.model.StudyGroup;
 
 public class AddServer implements Command {
     private CollectionManager collectionManager;
-    public AddServer(CollectionManager collectionManager) {
+    private CollectionDao collectionDao;
+    public AddServer(CollectionManager collectionManager, CollectionDao collectionDao) {
         this.collectionManager = collectionManager;
+        this.collectionDao = collectionDao;
+    }
+    public String execute(Request request) {
+            StudyGroup studyGroup = request.getStudyGroup();
+            long newId = collectionDao.saveGroup(studyGroup, request.getUserName());
+            if(newId != -1){
+                studyGroup.setId(newId);
+                return collectionManager.add(studyGroup);
+            }
+            return "Ошибка: не удалось сохранить группу в базу данных.";
     }
 
     @Override
@@ -17,11 +30,7 @@ public class AddServer implements Command {
 
     @Override
     public String execute(String args, StudyGroup studyGroup) {
-        try {
-            return collectionManager.add(studyGroup);
-        } catch (Exception e) {
-            return "ошибка" + e.getMessage();
-        }
+        return "";
     }
 
     @Override

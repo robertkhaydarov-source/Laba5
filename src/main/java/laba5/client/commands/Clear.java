@@ -1,6 +1,8 @@
 package laba5.client.commands;
 
+import laba5.server.manager.CollectionDao;
 import laba5.server.manager.CollectionManager;
+import laba5.shared.actions.Request;
 import laba5.shared.model.StudyGroup;
 /**
  * Класс Clear очистить коллекцию.
@@ -13,13 +15,15 @@ public class Clear implements Command {
     private final CollectionManager collectionManager;
     private final String name="clear";
     private StudyGroup studyGroup;
+    private final CollectionDao collectionDao;
     /**
      * Конструктор команды Clear.
      *
      * @param collectionManager менеджер коллекции
      */
-    public Clear(CollectionManager collectionManager){
+    public Clear(CollectionManager collectionManager, CollectionDao collectionDao){
         this.collectionManager=collectionManager;
+        this.collectionDao = collectionDao;
     }
 
     /**
@@ -31,6 +35,13 @@ public class Clear implements Command {
         collectionManager.clear();
         return "коллекция очищена";
     }
+
+    public String execute(Request request) {
+        collectionDao.clearAllGroups(request.getUserName());
+        collectionManager.clearAllOwnedBy(request.getUserName());
+        return "элементы принадлежащие вам очищены";
+    }
+
 
     @Override
     public String execute(String args, StudyGroup studyGroup) {

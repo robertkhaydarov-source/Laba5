@@ -15,12 +15,17 @@ import java.net.*;
 import java.sql.DriverManager;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Server {
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
 
     public static void main(String[] args) { // datagram socket
         try {
+            ExecutorService readPool = Executors.newFixedThreadPool(4);
+            ExecutorService executionPool = Executors.newFixedThreadPool(4);
+            ExecutorService sendPool = Executors.newCachedThreadPool();
             InetSocketAddress inetSocketAddress = new InetSocketAddress("localhost", 7777);
             DatagramSocket socket = new DatagramSocket(inetSocketAddress);
             byte[] buffer = new byte[65507];
@@ -30,26 +35,26 @@ public class Server {
                     "postgres",
                     "postgres");
             UserDao userDao = new UserDao(databaseHandler);
-            if(databaseHandler.connect()!=null){
+            if (databaseHandler.connect() != null) {
                 logger.info("Подключение к БД успешно!");
-            }
-            else {
+            } else {
                 logger.info("Подключение к БД не удалось");
                 System.exit(-1);
             }
             InputManager inputManager = new InputManager(null);
+            CollectionDao collectionDao = new CollectionDao(databaseHandler);
             CommandInvoker invoker = new CommandInvoker(inputManager);
             invoker.register(new Help(invoker));
             invoker.register(new Info(collectionManager));
             invoker.register(new Show(collectionManager));
-            invoker.register(new Clear(collectionManager));
-            invoker.register(new Remove_by_id(collectionManager));
-            invoker.register(new AddServer(collectionManager));
-            invoker.register(new UpdateServer(collectionManager));
+            invoker.register(new Clear(collectionManager, collectionDao));
+            invoker.register(new Remove_by_id(collectionManager, collectionDao));
+            invoker.register(new AddServer(collectionManager, collectionDao));
+            invoker.register(new UpdateServer(collectionManager, collectionDao));
             invoker.register(new Exit());
-            invoker.register(new Remove_last(collectionManager));
-            invoker.register(new AddIfMaxServer(collectionManager));
-            invoker.register(new RemoveLowerServer(collectionManager));
+            invoker.register(new Remove_last(collectionManager, collectionDao));
+            invoker.register(new AddIfMaxServer(collectionManager, collectionDao));
+            invoker.register(new RemoveLowerServer(collectionManager, collectionDao));
             invoker.register(new Count_by_form_of_education(collectionManager));
             invoker.register(new Filter_contains_name(collectionManager));
             invoker.register(new Print_field_ascending_should_be_expelled(collectionManager));
@@ -75,92 +80,120 @@ public class Server {
                     return size() > 100;
                 }
             };
-            CollectionDao collectionDao = new CollectionDao(databaseHandler);
+
             List<StudyGroup> studyGroups = collectionDao.loadCollection();
-            if(studyGroups!=null){
+            if (studyGroups != null) {
                 for (StudyGroup studyGroup : studyGroups) {
                     collectionManager.add(studyGroup);
                 }
                 logger.info("Элементы из базы данных успешно загружены в коллекцию памяти (всего: {})", studyGroups.size());
                 collectionManager.updateCurrentId();
-            }else {
+            } else {
                 logger.error("Не удалось загрузить коллекцию из базы данных!");
             }
             while (true) {
                 DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                 socket.receive(packet);
-                ByteArrayInputStream bits = new ByteArrayInputStream(packet.getData(), 0, packet.getLength());
-                ObjectInputStream oos = new ObjectInputStream(bits);
-                Request request = (Request) oos.readObject();
-                String requestId = request.getRequestId() != null
-                        ? request.getRequestId()
-                        : UUID.randomUUID().toString().substring(0, 8);
-                MDC.put("requestId", requestId);
+
+                byte[] packetData = Arrays.copyOf(packet.getData(), packet.getLength());
                 InetAddress clientAddress = packet.getAddress();
                 int clientPort = packet.getPort();
-                if (processedRequests.containsKey(requestId)) {
-                    logger.warn("Duplicate request ID: {}", requestId);
-                    Response cashedResponse = processedRequests.get(requestId);
-                    ByteArrayOutputStream bits1 = new ByteArrayOutputStream();
-                    ObjectOutputStream oos1 = new ObjectOutputStream(bits1);
-                    oos1.writeObject(cashedResponse);
-                    oos1.flush();
-                    byte[] responseByte1 = bits1.toByteArray();
-                    DatagramPacket sendPacket = new DatagramPacket(
-                            responseByte1, responseByte1.length, clientAddress, clientPort
-                    );
-                    socket.send(sendPacket);
-                    logger.info("Cached response sent to: {}", clientAddress);
-                    MDC.clear();
-                    continue;
-                }
 
-                if (clientAddress != null) {
-                    logger.info("New connection from {}", clientAddress);
-                    String result;
-                    if ("register".equals(request.getName())) {
-                        if (userDao.register(request.getUserName(), request.getPassword())) {
-                            result = "Регистрация успешна";
-                        } else result = "Логин уже занят";
-                    } else {
-                        boolean isAuthenticate = userDao.authenticate(request.getUserName(), request.getPassword());
-                        if (!isAuthenticate) {
-                            result = "Ошибка: неверный логин или пароль! Выполнение команды запрещено.";
-                        } else {
-                            if ("exit".equals(request.getName())) {
-                                // Отклонить exit - это только для клиента
-                                result = "Команда exit недоступна на сервере";
-                            } else {
-                                if (request.getStudyGroup() != null) {
-                                    result = invoker.execute(request);
-                                } else {
-                                    result = invoker.execute(request.getName() + " " + (request.getArgs() != null ? request.getArgs() : ""));
+                readPool.submit(() -> {
+                    try {
+                        ByteArrayInputStream bits = new ByteArrayInputStream(packetData);
+                        ObjectInputStream oos = new ObjectInputStream(bits);
+                        final Request request = (Request) oos.readObject();
+                        executionPool.submit(() -> {
+                            try {
+                                String requestId = request.getRequestId() != null
+                                        ? request.getRequestId()
+                                        : UUID.randomUUID().toString().substring(0, 8);
+                                MDC.put("requestId", requestId);
+
+                                if (processedRequests.containsKey(requestId)) {
+                                    logger.warn("Duplicate request ID: {}", requestId);
+                                    Response cashedResponse = processedRequests.get(requestId);
+                                    ByteArrayOutputStream bits1 = new ByteArrayOutputStream();
+                                    ObjectOutputStream oos1 = new ObjectOutputStream(bits1);
+                                    oos1.writeObject(cashedResponse);
+                                    oos1.flush();
+                                    byte[] responseByte1 = bits1.toByteArray();
+                                    DatagramPacket sendPacket = new DatagramPacket(
+                                            responseByte1, responseByte1.length, clientAddress, clientPort
+                                    );
+                                    socket.send(sendPacket);
+                                    logger.info("Cached response sent to: {}", clientAddress);
+                                    MDC.clear();
+                                    return;
                                 }
-                            }
-                        }
-                    }
-                    logger.info("Received command: {} studyGroup: {}", request.getName(), request.getStudyGroup());
-                    logger.info("Результат: " + result);
-                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                    ObjectOutputStream oos2 = new ObjectOutputStream(bos);
-                    Response response = new Response(result, collectionManager.getCurrentId(), requestId);
-                    processedRequests.put(requestId, response);
-                    oos2.writeObject(response);
-                    oos2.flush();
-                    byte[] responseByte = bos.toByteArray();
-                    DatagramPacket sendPacket = new DatagramPacket(
-                            responseByte, responseByte.length, clientAddress, clientPort
-                    );
-                    socket.send(sendPacket);
-                    logger.info("Response sent to: {}", clientAddress);
-                }
-            }
-        } catch (IOException | ClassNotFoundException e) {
-            logger.error(e.getMessage());
-        } finally {
-            MDC.clear();
-        }
+                                if (clientAddress != null) {
+                                    logger.info("New connection from {}", clientAddress);
+                                    String result;
+                                    synchronized (collectionManager) {
+                                        if ("register".equals(request.getName())) {
+                                            if (userDao.register(request.getUserName(), request.getPassword())) {
+                                                result = "Регистрация успешна";
+                                            } else result = "Логин уже занят";
+                                        } else {
+                                            boolean isAuthenticate = userDao.authenticate(request.getUserName(), request.getPassword());
+                                            if (!isAuthenticate) {
+                                                result = "Ошибка: неверный логин или пароль! Выполнение команды запрещено.";
+                                            } else {
+                                                if ("exit".equals(request.getName())) {
+                                                    // Отклонить exit - это только для клиента
+                                                    result = "Команда exit недоступна на сервере";
+                                                } else {
+                                                    if (request.getStudyGroup() != null) {
+                                                        result = invoker.execute(request);
+                                                    } else {
+                                                        result = invoker.execute(request.getName() + " " +request.getArgs().toString(), request.getUserName(), request.getPassword());
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    logger.info("Received command: {} studyGroup: {}", request.getName(), request.getStudyGroup());
+                                    logger.info("Результат: " + result);
+                                    sendPool.submit(() -> {
+                                        try {
+                                            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                                            ObjectOutputStream oos2 = new ObjectOutputStream(bos);
+                                            Response response = new Response(result, collectionManager.getCurrentId(), requestId);
+                                            processedRequests.put(requestId, response);
+                                            oos2.writeObject(response);
+                                            oos2.flush();
+                                            byte[] responseByte = bos.toByteArray();
+                                            DatagramPacket sendPacket = new DatagramPacket(
+                                                    responseByte, responseByte.length, clientAddress, clientPort
+                                            );
+                                            socket.send(sendPacket);
+                                            logger.info("Response sent to: {}", clientAddress);
+                                        } catch (IOException e) {
+                                            logger.error("Ошибка отправки: " + e.getMessage());
+                                        }
 
+                                    });
+                                }
+                            } catch (IOException e) {
+                                logger.error(e.getMessage());
+                            } finally {
+                                MDC.clear();
+                            }
+                        });
+                    } catch (IOException | ClassNotFoundException e) {
+                        logger.error("Ошибка десериализации пакета: ", e.getMessage());
+                    }
+                });
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+        }
     }
 }
+
+
+
+
+
 

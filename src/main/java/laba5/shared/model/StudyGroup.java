@@ -17,7 +17,8 @@ public class StudyGroup implements Comparable<StudyGroup>, Serializable {
     private Long shouldBeExpelled; //Значение поля должно быть больше 0, Поле может быть null
     private FormOfEducation formOfEducation; //Поле может быть null
     private Semester semesterEnum; //Поле может быть null
-    private Person groupAdmin; //Поле не может быть null
+    private Person groupAdmin;
+    private String ownerLogin;//Поле не может быть null
     public StudyGroup (long id, String name, Coordinates coordinates, ZonedDateTime creationDate, int studentsCount, Long shouldBeExpelled, FormOfEducation formOfEducation, Semester semesterEnum, Person groupAdmin){
 
         this.id=id;
@@ -47,6 +48,14 @@ public class StudyGroup implements Comparable<StudyGroup>, Serializable {
 
     public String getName() {
         return name;
+    }
+
+    public String getOwnerLogin() {
+        return ownerLogin;
+    }
+
+    public void setOwnerLogin(String ownerLogin) {
+        this.ownerLogin = ownerLogin;
     }
 
     public FormOfEducation getFormOfEducation() {
@@ -95,6 +104,11 @@ public class StudyGroup implements Comparable<StudyGroup>, Serializable {
     public ZonedDateTime getCreationDate() {
         return creationDate;
     }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
     /**
      * Возвращает строковое представление объекта StudyGroup.
      *

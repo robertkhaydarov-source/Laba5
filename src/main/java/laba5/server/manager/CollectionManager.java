@@ -79,7 +79,9 @@ public class CollectionManager {
         collection.remove(found.get());
         return true;
     }
-
+    public void clearAllOwnedBy(String userName){
+        collection.removeIf(studyGroup -> studyGroup.getOwnerLogin().equals(userName));
+    }
     /**
      * @return увеличивает счетчик id.
      */
@@ -150,7 +152,6 @@ public class CollectionManager {
             collection.add(studyGroup);
         }
         return f;
-
     }
 
     /**
