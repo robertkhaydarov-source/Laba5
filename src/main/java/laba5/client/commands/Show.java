@@ -1,6 +1,7 @@
 package laba5.client.commands;
 
 import laba5.server.manager.CollectionManager;
+import laba5.shared.actions.Request;
 import laba5.shared.model.StudyGroup;
 
 import java.util.List;
@@ -39,7 +40,11 @@ public class Show implements Command {
         }
         else return "коллекция пуста";
     }
-
+    @Override
+    public String execute(Request request) {
+        String arg = request.getArgs() != null ? request.getArgs().toString() : "";
+        return this.execute(arg.isEmpty() ? new String[0] : new String[]{arg});
+    }
     @Override
     public String execute(String args, StudyGroup studyGroup) {
         return "";

@@ -45,6 +45,7 @@ public class UpdateServer implements Command {
         }
 
     }
+    @Override
     public String execute(Request request){
         synchronized (collectionManager){
             StudyGroup studyGroup = request.getStudyGroup();

@@ -44,6 +44,7 @@ public class Remove_by_id implements Command {
             return  "введен не корректный id" + e.getMessage();
         }
     }
+    @Override
     public String execute(Request request) {
         synchronized (collectionManager){
             if (request.getArgs()==null) {

@@ -34,12 +34,11 @@ public class CommandInvoker  {
     }
     public String execute(Request request){
         String commandName = request.getName();
-        String arg = request.getArgs() != null ? request.getArgs().toString() : "";
-        StudyGroup studyGroup = request.getStudyGroup();
         if (comandMap.containsKey(commandName)) {
-            return comandMap.get(commandName).execute(arg,  studyGroup);
+            // Теперь передаем РЕКВЕСТ целиком! Логин и пароль не потеряются!
+            return comandMap.get(commandName).execute(request);
         }
-        else return "такой команды не существует или неверные данные";
+        else return "Такой команды не существует или неверные данные";
     }
 
     /**

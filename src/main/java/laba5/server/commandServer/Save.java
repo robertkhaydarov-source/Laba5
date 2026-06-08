@@ -3,6 +3,7 @@ package laba5.server.commandServer;
 import com.opencsv.CSVWriter;
 import laba5.client.commands.Command;
 import laba5.server.manager.CollectionManager;
+import laba5.shared.actions.Request;
 import laba5.shared.model.StudyGroup;
 
 import java.io.FileWriter;
@@ -63,7 +64,11 @@ public class Save implements Command {
         }
 
     }
-
+    @Override
+    public String execute(Request request) {
+        String arg = request.getArgs() != null ? request.getArgs().toString() : "";
+        return this.execute(arg, request.getStudyGroup());
+    }
     @Override
     public String execute(String args, StudyGroup studyGroup) {
         return "";

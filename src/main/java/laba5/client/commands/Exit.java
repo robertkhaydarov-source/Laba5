@@ -1,5 +1,6 @@
 package laba5.client.commands;
 
+import laba5.shared.actions.Request;
 import laba5.shared.model.StudyGroup;
 
 /**
@@ -19,6 +20,11 @@ public class Exit implements Command {
     public String execute(String... args) {
         System.exit(0);
         return "закрытие консольного приложения";
+    }
+    @Override
+    public String execute(Request request) {
+        String arg = request.getArgs() != null ? request.getArgs().toString() : "";
+        return this.execute(arg.isEmpty() ? new String[0] : new String[]{arg});
     }
 
     @Override

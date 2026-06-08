@@ -24,6 +24,7 @@ public class AddIfMaxServer implements Command {
 
     @Override
     public String execute(String args, StudyGroup studyGroup) {return "444";}
+    @Override
     public String execute(Request request) {
         synchronized (collectionManager){
             StudyGroup studyGroup = request.getStudyGroup();

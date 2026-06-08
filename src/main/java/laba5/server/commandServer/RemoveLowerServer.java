@@ -27,6 +27,7 @@ public class RemoveLowerServer implements Command {
     public String execute(String args, StudyGroup studyGroup) {
         return "";
     }
+    @Override
     public String execute(Request request) {
         synchronized (collectionManager) {
             String userName = request.getUserName();

@@ -13,6 +13,7 @@ public class AddServer implements Command {
         this.collectionManager = collectionManager;
         this.collectionDao = collectionDao;
     }
+    @Override
     public String execute(Request request) {
             StudyGroup studyGroup = request.getStudyGroup();
             long newId = collectionDao.saveGroup(studyGroup, request.getUserName());

@@ -27,7 +27,7 @@ public class Execute_script implements Command {
         this.inputManager = inputManager;
     }
 
-    // Основной метод, который будет вызываться сервером
+    @Override
     public String execute(Request request) {
         if (request.getArgs() == null || request.getArgs().toString().isEmpty()) {
             return "Не указано имя файла скрипта";

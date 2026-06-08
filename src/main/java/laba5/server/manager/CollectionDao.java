@@ -1,6 +1,8 @@
 package laba5.server.manager;
 
 import laba5.shared.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.time.ZoneId;
@@ -8,7 +10,9 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class CollectionDao {
+    private static final Logger log = LoggerFactory.getLogger(CollectionDao.class);
     private DatabaseHandler databaseHandler;
     public CollectionDao(DatabaseHandler databaseHandler) {
         this.databaseHandler = databaseHandler;
@@ -26,7 +30,7 @@ public class CollectionDao {
                 Long shouldBeExpelled = rs.getLong("shouldbeexpelled");
                 String fmStr = rs.getString("formofeducation");
                 FormOfEducation fm = (fmStr != null) ? FormOfEducation.valueOf(fmStr) : null;
-                String seme  = rs.getString("semester");
+                String seme  = rs.getString("semesterenum");
                 Semester sem = (seme!= null) ? Semester.valueOf(seme) : null;
                 String eye =  rs.getString("eyecolor");
                 Color eyeColor = (eye != null) ? Color.valueOf(eye) : null;
@@ -68,8 +72,12 @@ public class CollectionDao {
             if(gK.next()){
                 return gK.getLong(1);
             }
-    }catch (Exception e){
-        System.err.println("Error saving group" + e.getMessage());
+    } catch (SQLException e) {
+            log.error("!!! КРИТИЧЕСКАЯ ОШИБКА ПОСТГРЕСА ПРИ ДОБАВЛЕНИИ ГРУППЫ !!!");
+            log.error("Сообщение ошибки: " + e.getMessage());
+            log.error("SQL-статус: " + e.getSQLState());
+            e.printStackTrace(); // Напечатает всю трассировку в консоль сервера
+            return -1;
         }
         return -1;
     }

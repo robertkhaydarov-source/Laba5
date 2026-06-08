@@ -1,6 +1,7 @@
 package laba5.client.commands;
 
 import laba5.server.manager.CollectionManager;
+import laba5.shared.actions.Request;
 import laba5.shared.model.StudyGroup;
 
 /**
@@ -22,11 +23,12 @@ public class Count_by_form_of_education implements Command {
         this.collectionManager = collectionManager;
     }
 
-    /**
-     * Выполняет команду.
-     *
-     * @param args аргументы команды
-     */
+
+    @Override
+    public String execute(Request request) {
+        String arg = request.getArgs() != null ? request.getArgs().toString() : "";
+        return this.execute(arg.isEmpty() ? new String[0] : new String[]{arg});
+    }
     public String execute(String... args) {
         if (args.length == 1) {
             return collectionManager.count_by_form_of_education(args[0]);

@@ -1,6 +1,7 @@
 package laba5.client.commands;
 
 import laba5.server.manager.CollectionManager;
+import laba5.shared.actions.Request;
 import laba5.shared.model.StudyGroup;
 
 /**
@@ -28,6 +29,11 @@ public class Print_field_ascending_should_be_expelled implements Command {
             return "имена отсортированы" + '\n' + collectionManager.print_field_ascending_should_be_expelled();
         }
         else return "коллекция пуста";
+    }
+    @Override
+    public String execute(Request request) {
+        String arg = request.getArgs() != null ? request.getArgs().toString() : "";
+        return this.execute(arg.isEmpty() ? new String[0] : new String[]{arg});
     }
 
     @Override

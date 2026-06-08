@@ -1,6 +1,7 @@
 package laba5.client.commands;
 
 import laba5.server.manager.CommandInvoker;
+import laba5.shared.actions.Request;
 import laba5.shared.model.StudyGroup;
 
 /**
@@ -33,7 +34,11 @@ public class Help implements Command {
         }
         return line;
     }
-
+    @Override
+    public String execute(Request request) {
+        String arg = request.getArgs() != null ? request.getArgs().toString() : "";
+        return this.execute(arg.isEmpty() ? new String[0] : new String[]{arg});
+    }
     @Override
     public String execute(String args, StudyGroup studyGroup) {
         return "";

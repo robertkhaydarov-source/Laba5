@@ -35,7 +35,7 @@ public class Clear implements Command {
         collectionManager.clear();
         return "коллекция очищена";
     }
-
+    @Override
     public String execute(Request request) {
         collectionDao.clearAllGroups(request.getUserName());
         collectionManager.clearAllOwnedBy(request.getUserName());

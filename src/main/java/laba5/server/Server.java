@@ -4,8 +4,7 @@ import laba5.client.commands.*;
 import laba5.server.commandServer.*;
 import laba5.server.manager.*;
 import laba5.shared.actions.Request;
-import laba5.shared.actions.Response;
-import laba5.shared.model.StudyGroup;
+import laba5.shared.actions.Response;import laba5.shared.model.StudyGroup;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.MDC;
@@ -31,9 +30,9 @@ public class Server {
             byte[] buffer = new byte[65507];
             CollectionManager collectionManager = new CollectionManager();
             StudyGroupFactory studyGroupFactory = new StudyGroupFactory(collectionManager);
-            DatabaseHandler databaseHandler = new DatabaseHandler("jdbc:postgresql://localhost:5432/postgres",
-                    "postgres",
-                    "postgres");
+            DatabaseHandler databaseHandler = new DatabaseHandler("jdbc:postgresql://pg:5432/studs",
+                    "s501445", // Твой логин ИСУ из скриншота
+                    "VWJwnpCECNwFSV0w");
             UserDao userDao = new UserDao(databaseHandler);
             if (databaseHandler.connect() != null) {
                 logger.info("Подключение к БД успешно!");
@@ -144,11 +143,7 @@ public class Server {
                                                     // Отклонить exit - это только для клиента
                                                     result = "Команда exit недоступна на сервере";
                                                 } else {
-                                                    if (request.getStudyGroup() != null) {
-                                                        result = invoker.execute(request);
-                                                    } else {
-                                                        result = invoker.execute(request.getName() + " " +request.getArgs().toString(), request.getUserName(), request.getPassword());
-                                                    }
+                                                    result = invoker.execute(request);
                                                 }
                                             }
                                         }
