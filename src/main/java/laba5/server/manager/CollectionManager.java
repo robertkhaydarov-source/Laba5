@@ -64,7 +64,14 @@ public class CollectionManager {
             return "Элемент добавлен";
         }
 
-
+    public StudyGroup getById(long id) {
+        synchronized (collection) {
+            return collection.stream()
+                    .filter(group -> group.getId() == id)
+                    .findFirst()
+                    .orElse(null);
+        }
+    }
     /**
      * Удаляет элемент коллекции по его идентификатору.
      *
@@ -79,8 +86,8 @@ public class CollectionManager {
         collection.remove(found.get());
         return true;
     }
-    public void clearAllOwnedBy(String userName){
-        collection.removeIf(studyGroup -> studyGroup.getOwnerLogin().equals(userName));
+    public void clearAllOwnedBy(String userName) {
+        collection.removeIf(group -> group.getOwnerLogin() != null && group.getOwnerLogin().equals(userName));
     }
     /**
      * @return увеличивает счетчик id.

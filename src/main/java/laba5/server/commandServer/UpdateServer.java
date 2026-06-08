@@ -46,20 +46,38 @@ public class UpdateServer implements Command {
 
     }
     @Override
-    public String execute(Request request){
-        synchronized (collectionManager){
-            StudyGroup studyGroup = request.getStudyGroup();
-            if (request.getArgs()==null) {
-                return "не введен id";
+    public String execute(Request request) {
+        synchronized (collectionManager) {
+            if (request.getArgs() == null || request.getArgs().toString().isEmpty()) {
+                return "Ошибка: Не введён ID элемента для обновления.";
             }
-            long id_update = Long.parseLong(request.getArgs().toString());
-            if(collectionDao.updateStudy(id_update, studyGroup, request.getUserName())){
-                collectionManager.remove_by_id(id_update);
-                studyGroup.setId(id_update);
-                collectionManager.add(studyGroup);
-                return "элемент обновлен в бд";
+            try {
+                long idUpdate = Long.parseLong(request.getArgs().toString().trim());
+                StudyGroup existingGroup = collectionManager.getById(idUpdate);
+                if (existingGroup == null) {
+                    return "Ошибка: Элемент с ID " + idUpdate + " не найден в коллекции.";
+                }
+                if (!existingGroup.getOwnerLogin().equals(request.getUserName())) {
+                    return "Ошибка: Элемент с ID " + idUpdate + " принадлежит другому пользователю (" + existingGroup.getOwnerLogin() + "). Вы не имеете прав на его модификацию.";
+                }
+                StudyGroup newStudyGroup = request.getStudyGroup();
+                if (newStudyGroup == null) {
+                    return "Ошибка: Не переданы новые данные для объекта StudyGroup.";
+                }
+
+                if (collectionDao.updateStudy(idUpdate, newStudyGroup, request.getUserName(), request.getPassword())) {
+                    collectionManager.remove_by_id(idUpdate);
+                    newStudyGroup.setId(idUpdate);
+                    newStudyGroup.setOwnerLogin(request.getUserName()); // НЕ ЗАБЫВАЕМ СЕТТИТЬ ВЛАДЕЛЬЦА В ПАМЯТЬ!
+                    collectionManager.add(newStudyGroup);
+                    return "Элемент с ID " + idUpdate + " успешно обновлён в БД и оперативной памяти.";
+                }
+
+                return "Ошибка: База данных отклонила обновление элемента.";
+
+            } catch (NumberFormatException e) {
+                return "Ошибка: Введён некорректный формат ID. Ожидалось число.";
             }
-            return "ошибка обновления";
         }
     }
     @Override

@@ -18,7 +18,8 @@ public class StudyGroup implements Comparable<StudyGroup>, Serializable {
     private FormOfEducation formOfEducation; //Поле может быть null
     private Semester semesterEnum; //Поле может быть null
     private Person groupAdmin;
-    private String ownerLogin;//Поле не может быть null
+    private String ownerLogin;
+    private String password;//Поле не может быть null
     public StudyGroup (long id, String name, Coordinates coordinates, ZonedDateTime creationDate, int studentsCount, Long shouldBeExpelled, FormOfEducation formOfEducation, Semester semesterEnum, Person groupAdmin){
 
         this.id=id;
@@ -52,6 +53,14 @@ public class StudyGroup implements Comparable<StudyGroup>, Serializable {
 
     public String getOwnerLogin() {
         return ownerLogin;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getPassword() {
+        return password;
     }
 
     public void setOwnerLogin(String ownerLogin) {

@@ -60,7 +60,7 @@ public class Remove_last implements Command {
                 return "Ошибка: У вас нет созданных элементов в этой коллекции.";
             }
             long idToDelete = lastOwnedGroup.get().getId();
-            if (collectionDao.deleteStudy(idToDelete, username)) {
+            if (collectionDao.deleteStudy(idToDelete, username, request.getPassword())) {
                 collectionManager.remove_by_id(idToDelete);
                 return "Ваш последний элемент успешно удален.";
             } else {

@@ -37,10 +37,25 @@ public class Clear implements Command {
     }
     @Override
     public String execute(Request request) {
-        collectionDao.clearAllGroups(request.getUserName());
-        collectionManager.clearAllOwnedBy(request.getUserName());
-        return "элементы принадлежащие вам очищены";
+        synchronized (collectionManager) {
+            // Вызываем метод и получаем количество удалённых строк
+            int deletedRows = collectionDao.clearAllGroups(request.getUserName(), request.getPassword());
+
+            if (deletedRows == -1) {
+                return "Ошибка: Не удалось выполнить очистку в базе данных. Проверьте соединение или учётные данные.";
+            }
+
+            // Даже если удалено 0 строк, мы обязаны вызвать очистку памяти (на всякий случай)
+            collectionManager.clearAllOwnedBy(request.getUserName());
+
+            if (deletedRows == 0) {
+                return "Очистка завершена. У вас не было созданных элементов в коллекции.";
+            }
+
+            return "Очистка успешно завершена! Из базы данных и оперативной памяти удалено ваших элементов: " + deletedRows;
+        }
     }
+
 
 
     @Override

@@ -16,7 +16,7 @@ public class AddServer implements Command {
     @Override
     public String execute(Request request) {
             StudyGroup studyGroup = request.getStudyGroup();
-            long newId = collectionDao.saveGroup(studyGroup, request.getUserName());
+            long newId = collectionDao.saveGroup(studyGroup, request.getUserName(), request.getPassword());
             if(newId != -1){
                 studyGroup.setId(newId);
                 return collectionManager.add(studyGroup);

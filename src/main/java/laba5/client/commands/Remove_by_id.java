@@ -46,17 +46,29 @@ public class Remove_by_id implements Command {
     }
     @Override
     public String execute(Request request) {
-        synchronized (collectionManager){
-            if (request.getArgs()==null) {
-                return "не введен id";
+        synchronized (collectionManager) {
+            if (request.getArgs() == null || request.getArgs().toString().isEmpty()) {
+                return "Ошибка: Не указан ID для удаления.";
             }
-            long id_update = Long.parseLong(request.getArgs().toString().trim());
-            if(collectionDao.deleteStudy(id_update, request.getUserName())){
-                collectionManager.remove_by_id(id_update);
-                return "удаление из базы данных прошло успешно";
-            }
-            return "ошибка удаления";
+            try {
+                long id = Long.parseLong(request.getArgs().toString().trim());
+                StudyGroup group = collectionManager.getById(id);
 
+                if (group == null) {
+                    return "Ошибка: Элемент с ID " + id + " не существует.";
+                }
+                if (!group.getOwnerLogin().equals(request.getUserName())) {
+                    return "Ошибка: Отказано в доступе. Вы не являетесь владельцем элемента с ID " + id;
+                }
+
+                if (collectionDao.deleteStudy(id, request.getUserName(), request.getPassword())) {
+                    collectionManager.remove_by_id(id);
+                    return "Элемент с ID " + id + " успешно удалён из базы данных и памяти.";
+                }
+                return "Ошибка: База данных отклонила удаление.";
+            } catch (NumberFormatException e) {
+                return "Ошибка: ID должен быть числом.";
+            }
         }
     }
 

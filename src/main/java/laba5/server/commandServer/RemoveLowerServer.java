@@ -37,7 +37,7 @@ public class RemoveLowerServer implements Command {
                     .collect(Collectors.toList());
             int deleteCount=0;
             for(StudyGroup group:studyGroupList){
-                if(collectionDao.deleteStudy(group.getId(), userName)){
+                if(collectionDao.deleteStudy(group.getId(), userName, request.getPassword())){
                     collectionManager.remove_by_id(group.getId());
                     deleteCount++;
                 }

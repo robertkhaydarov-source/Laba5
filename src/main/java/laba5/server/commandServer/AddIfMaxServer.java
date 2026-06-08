@@ -35,7 +35,7 @@ public class AddIfMaxServer implements Command {
                 }
 
             }
-            long newId = collectionDao.saveGroup(studyGroup, request.getUserName());
+            long newId = collectionDao.saveGroup(studyGroup, request.getUserName(), request.getPassword());
             if(newId == -1){
                 studyGroup.setId(newId);
                 collectionManager.add(studyGroup);

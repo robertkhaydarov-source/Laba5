@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+
 public class CollectionDao {
     private static final Logger log = LoggerFactory.getLogger(CollectionDao.class);
     private DatabaseHandler databaseHandler;
@@ -19,7 +20,9 @@ public class CollectionDao {
     }
     public List<StudyGroup> loadCollection(){
         List<StudyGroup> studyGroups = new ArrayList<>();
-            String sql = "SELECT * FROM studygroup";
+            String sql = "SELECT sg.*, u.login AS owner_username"  +
+                    "FROM studygroup sg" +
+                    "INNER JOIN users u ON sg.owner_id = u.id";
         try(Connection connect = databaseHandler.connect(); PreparedStatement prSt = connect.prepareStatement(sql); ResultSet rs = prSt.executeQuery()){
             while(rs.next()){
                 Long id = rs.getLong("id");
@@ -41,6 +44,7 @@ public class CollectionDao {
                 Person person = new Person(rs.getString("namegroupadmin"), rs.getString("passportid"),
                         eyeColor, hairColor, natCountry);
                 StudyGroup studyGroup = new StudyGroup(id, name, coordinates, dateTime, studentsCount, shouldBeExpelled, fm, sem, person);
+                studyGroup.setOwnerLogin(rs.getString("owner_username"));
                 studyGroups.add(studyGroup);
             }
             return studyGroups;
@@ -49,9 +53,12 @@ public class CollectionDao {
         }
         return null;
     }
-    public long saveGroup(StudyGroup studyGroup, String ownerLogin){
-        String sql = "INSERT INTO studygroup (name, x, y, creationdate, studentcount, shouldbeexpelled, formofeducation, semesterenum, namegroupadmin, passportid, eyecolor, haircolor, nationality, owner_id) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (SELECT id FROM users WHERE login = ?))";
+    public long saveGroup(StudyGroup studyGroup, String ownerLogin, String password){
+        String sql = "INSERT INTO studygroup (name, x, y, creationdate, studentcount, shouldbeexpelled, " +
+                "formofeducation, semesterenum, namegroupadmin, passportid, eyecolor, haircolor, nationality, owner_id) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
+                "(SELECT id FROM users WHERE login = ? AND password = ?)) " +
+                "RETURNING id";
         try(Connection connect = databaseHandler.connect(); PreparedStatement prSt = connect.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);){
             prSt.setString(1, studyGroup.getName());
             prSt.setInt(2, Integer.parseInt(studyGroup.getCoordinatesX()));
@@ -67,10 +74,14 @@ public class CollectionDao {
             prSt.setString(12, studyGroup.getGroupAdminH()!=null ? studyGroup.getGroupAdminH().toString() : null );
             prSt.setString(13, studyGroup.getGroupAdminC()!=null ? studyGroup.getGroupAdminC().toString() : null );
             prSt.setString(14, ownerLogin);
+            prSt.setString(15, password);
             prSt.executeUpdate();
-            ResultSet gK = prSt.getGeneratedKeys();
-            if(gK.next()){
-                return gK.getLong(1);
+            try (ResultSet rs = prSt.executeQuery()) {
+                if (rs.next()) {
+                    long generatedId = rs.getLong(1);
+                    studyGroup.setId(generatedId);
+                    return generatedId;
+                }
             }
     } catch (SQLException e) {
             log.error("!!! КРИТИЧЕСКАЯ ОШИБКА ПОСТГРЕСА ПРИ ДОБАВЛЕНИИ ГРУППЫ !!!");
@@ -81,11 +92,13 @@ public class CollectionDao {
         }
         return -1;
     }
-    public boolean deleteStudy(long id, String ownerLogin){
-       String sql =  "DELETE FROM studygroup WHERE id = ? AND owner_id = (SELECT id FROM users WHERE login = ?)";
+    public boolean deleteStudy(long id, String ownerLogin, String password){
+       String sql = "DELETE FROM studygroup WHERE id = ? " +
+               "AND owner_id = (SELECT id FROM users WHERE login = ? AND password = ?)";
         try(Connection connect = databaseHandler.connect(); PreparedStatement prSt = connect.prepareStatement(sql)){
            prSt.setLong(1, id);
            prSt.setString(2, ownerLogin);
+           prSt.setString(3,  password);
            if(prSt.executeUpdate()==1){
                return true;
            }
@@ -94,9 +107,12 @@ public class CollectionDao {
         }
         return false;
     }
-    public boolean updateStudy(long id, StudyGroup studyGroup, String ownerLogin){
-        String sql = "UPDATE studygroup SET name = ?, x = ?, y = ?, creationdate = ?, studentcount = ?, shouldbeexpelled = ?, formofeducation = ?, semesterenum = ?, namegroupadmin = ?, passportid = ?, eyecolor = ?, haircolor = ?, nationality = ? WHERE id = ? " +
-                "AND owner_id = (SELECT id FROM users WHERE login = ?)";
+    public boolean updateStudy(long id, StudyGroup studyGroup, String ownerLogin, String password){
+        String sql = "UPDATE studygroup SET name = ?, x = ?, y = ?, creationdate = ?, " +
+                "studentcount = ?, shouldbeexpelled = ?, formofeducation = ?, semesterenum = ?, " +
+                "namegroupadmin = ?, passportid = ?, eyecolor = ?, haircolor = ?, nationality = ? " +
+                "WHERE id = ? " +
+                "AND owner_id = (SELECT id FROM users WHERE login = ? AND password = ?)";
         try(Connection connect = databaseHandler.connect(); PreparedStatement prSt = connect.prepareStatement(sql)){
             prSt.setString(1, studyGroup.getName());
             prSt.setInt(2, Integer.parseInt(studyGroup.getCoordinatesX()));
@@ -113,6 +129,7 @@ public class CollectionDao {
             prSt.setString(13, studyGroup.getGroupAdminC()!=null ? studyGroup.getGroupAdminC().toString() : null );
             prSt.setInt(14, (int) studyGroup.getId());
             prSt.setString(15, ownerLogin);
+            prSt.setString(16,  password);
             if(prSt.executeUpdate()==1){
                 return true;
             }
@@ -121,13 +138,15 @@ public class CollectionDao {
         }
         return false;
     }
-    public void clearAllGroups(String ownerLogin){
-        String sql = "DELETE FROM studygroup WHERE owner_id = (SELECT id FROM users WHERE login = ?)";
+    public int clearAllGroups(String ownerLogin, String password){
+        String sql = "DELETE FROM studygroup WHERE owner_id = (SELECT id FROM users WHERE login = ? AND password = ?)";
         try(Connection connect = databaseHandler.connect(); PreparedStatement prSt = connect.prepareStatement(sql)){
             prSt.setString(1, ownerLogin);
-            prSt.executeUpdate();
+            prSt.setString(2, password);
+            return prSt.executeUpdate();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            System.err.println("Ошибка при выполнении очистки коллекции в БД: " + e.getMessage());
+            return -1;
         }
     }
 
