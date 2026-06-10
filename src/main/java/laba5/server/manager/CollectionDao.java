@@ -20,9 +20,9 @@ public class CollectionDao {
     }
     public List<StudyGroup> loadCollection(){
         List<StudyGroup> studyGroups = new ArrayList<>();
-            String sql = "SELECT sg.*, u.login AS owner_username"  +
-                    "FROM studygroup sg" +
-                    "INNER JOIN users u ON sg.owner_id = u.id";
+            String sql = "SELECT studygroup.*, users.login AS owner_username " +
+                "FROM studygroup " +
+                "INNER JOIN users ON studygroup.owner_id = users.id";
         try(Connection connect = databaseHandler.connect(); PreparedStatement prSt = connect.prepareStatement(sql); ResultSet rs = prSt.executeQuery()){
             while(rs.next()){
                 Long id = rs.getLong("id");
@@ -53,11 +53,38 @@ public class CollectionDao {
         }
         return null;
     }
-    public long saveGroup(StudyGroup studyGroup, String ownerLogin, String password){
+    public long saveGroup(StudyGroup studyGroup, String ownerLogin, String password) {
+        long userId = -1;
+
+        // Шаг 1: Явно достаем ID пользователя
+        String userSql = "SELECT id FROM users WHERE login = ? AND password = ?";
+        try (Connection connect = databaseHandler.connect();
+             PreparedStatement userPs = connect.prepareStatement(userSql)) {
+
+            userPs.setString(1, ownerLogin.trim());
+            userPs.setString(2, password.trim());
+
+            try (ResultSet rs = userPs.executeQuery()) {
+                if (rs.next()) {
+                    userId = rs.getLong("id");
+                }
+            }
+        } catch (SQLException e) {
+            log.error("Ошибка при поиске ID пользователя: " + e.getMessage());
+        }
+
+        // Если база не нашла юзера, мы сразу увидим это в логе сервера до падения инсерта!
+        if (userId == -1) {
+            log.error("!!! ОШИБКА СОПОСТАВЛЕНИЯ СЕССИИ В БД !!!");
+            log.error("Искомый логин: '{}'", ownerLogin);
+            log.error("Искомый хэш пароля: '{}'", password);
+            return -1;
+        }
+
+        // Шаг 2: Делаем чистый INSERT с готовым числовым userId
         String sql = "INSERT INTO studygroup (name, x, y, creationdate, studentcount, shouldbeexpelled, " +
                 "formofeducation, semesterenum, namegroupadmin, passportid, eyecolor, haircolor, nationality, owner_id) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, " +
-                "(SELECT id FROM users WHERE login = ? AND password = ?)) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " + // Просто знак вопроса вместо подзапроса!
                 "RETURNING id";
         try(Connection connect = databaseHandler.connect(); PreparedStatement prSt = connect.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);){
             prSt.setString(1, studyGroup.getName());
@@ -73,9 +100,7 @@ public class CollectionDao {
             prSt.setString(11, studyGroup.getGroupAdminE()!=null ? studyGroup.getGroupAdminE().toString() : null );
             prSt.setString(12, studyGroup.getGroupAdminH()!=null ? studyGroup.getGroupAdminH().toString() : null );
             prSt.setString(13, studyGroup.getGroupAdminC()!=null ? studyGroup.getGroupAdminC().toString() : null );
-            prSt.setString(14, ownerLogin);
-            prSt.setString(15, password);
-            prSt.executeUpdate();
+            prSt.setLong(14, userId);
             try (ResultSet rs = prSt.executeQuery()) {
                 if (rs.next()) {
                     long generatedId = rs.getLong(1);

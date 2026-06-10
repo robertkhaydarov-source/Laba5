@@ -1,24 +1,30 @@
 package laba5.shared.actions;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.nio.charset.StandardCharsets;
+import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HexFormat;
 
 public class PasswordHasher {
-    private static final Logger log = LoggerFactory.getLogger(PasswordHasher.class);
+    public static String hash(String password) {
+        if (password == null) return "";
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
 
-    public String hashing(String password) {
-        try{
-            MessageDigest md = MessageDigest.getInstance("SHA-384");
-            byte[] hash = md.digest(password.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(hash);
-        }
-        catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("SHA-384 is not supported", e);
+            byte[] messageDigest = md.digest(password.getBytes());
+            BigInteger no = new BigInteger(1, messageDigest);
+            String hashtext = no.toString(16);
+
+            // Добиваем нулями слева, если хэш получился короче
+            while (hashtext.length() < 64) {
+                hashtext = "0" + hashtext;
             }
+
+            // ИСПРАВЛЕНО: Принудительно переводим весь хэш в нижний регистр,
+            // чтобы исключить разницу регистров на клиенте/сервере/БД
+            return hashtext.toLowerCase();
+
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Ошибка алгоритма хэширования", e);
+        }
     }
 }
